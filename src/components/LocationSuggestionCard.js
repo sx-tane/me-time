@@ -77,25 +77,25 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.actionButton} onPress={handleOpenMaps}>
-          <Text style={styles.actionText}>📍 Directions</Text>
+          <Text style={styles.actionText}>directions</Text>
         </TouchableOpacity>
         
         {place.phone && (
           <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-            <Text style={styles.actionText}>📞 Call</Text>
+            <Text style={styles.actionText}>call</Text>
           </TouchableOpacity>
         )}
         
         {place.website && (
           <TouchableOpacity style={styles.actionButton} onPress={handleWebsite}>
-            <Text style={styles.actionText}>🌐 Website</Text>
+            <Text style={styles.actionText}>website</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {place.openingHours && place.openingHours.length > 0 && (
         <View style={styles.hours}>
-          <Text style={styles.hoursTitle}>Opening Hours:</Text>
+          <Text style={styles.hoursTitle}>hours</Text>
           <Text style={styles.hoursText} numberOfLines={2}>
             {place.openingHours.slice(0, 2).join(', ')}
           </Text>
@@ -107,109 +107,113 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.WHITE,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: COLORS.BLACK,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    backgroundColor: COLORS.card,
+    borderRadius: 2,
+    padding: 24,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    elevation: 0,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    flexDirection: 'column',
+    marginBottom: 20,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.DARK_BLUE,
-    flex: 1,
-    marginRight: 10,
+    fontSize: 18,
+    fontWeight: '300',
+    color: COLORS.text,
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   distance: {
-    fontSize: 14,
-    color: COLORS.ACCENT,
-    fontWeight: '500',
+    fontSize: 12,
+    color: COLORS.lightText,
+    fontWeight: '300',
+    textTransform: 'lowercase',
   },
   placeInfo: {
-    marginBottom: 12,
+    marginBottom: 20,
   },
   placeName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.BLACK,
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: '400',
+    color: COLORS.text,
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
   address: {
-    fontSize: 14,
-    color: COLORS.GRAY,
-    marginBottom: 8,
+    fontSize: 13,
+    color: COLORS.lightText,
+    marginBottom: 12,
+    fontWeight: '300',
   },
   details: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   rating: {
-    fontSize: 14,
-    color: COLORS.ACCENT,
-    fontWeight: '600',
+    fontSize: 12,
+    color: COLORS.secondary,
+    fontWeight: '300',
   },
   type: {
-    fontSize: 12,
-    color: COLORS.GRAY,
-    backgroundColor: COLORS.LIGHT_BLUE + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    fontSize: 11,
+    color: COLORS.lightText,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderRadius: 0,
+    fontWeight: '300',
+    textTransform: 'lowercase',
   },
   placeImage: {
     width: '100%',
-    height: 120,
-    borderRadius: 12,
-    marginBottom: 12,
+    height: 100,
+    borderRadius: 0,
+    marginBottom: 16,
+    opacity: 0.8,
   },
   actions: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
+    gap: 12,
+    marginBottom: 12,
+    marginTop: 8,
   },
   actionButton: {
-    backgroundColor: COLORS.ACCENT + '10',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.ACCENT + '30',
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+    paddingVertical: 4,
+    borderRadius: 0,
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
   },
   actionText: {
-    fontSize: 12,
-    color: COLORS.ACCENT,
-    fontWeight: '500',
+    fontSize: 11,
+    color: COLORS.text,
+    fontWeight: '300',
+    textTransform: 'lowercase',
   },
   hours: {
-    marginTop: 8,
-    paddingTop: 8,
+    marginTop: 16,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.LIGHT_BLUE + '30',
+    borderTopColor: COLORS.divider,
   },
   hoursTitle: {
-    fontSize: 12,
-    color: COLORS.DARK_BLUE,
-    fontWeight: '600',
-    marginBottom: 2,
+    fontSize: 11,
+    color: COLORS.text,
+    fontWeight: '300',
+    marginBottom: 4,
+    textTransform: 'lowercase',
   },
   hoursText: {
-    fontSize: 12,
-    color: COLORS.GRAY,
+    fontSize: 11,
+    color: COLORS.lightText,
     lineHeight: 16,
+    fontWeight: '300',
   },
 });
 

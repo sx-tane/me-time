@@ -4,6 +4,8 @@ const config = {
   development: {
     GOOGLE_PLACES_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || '',
     GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+    OPENAI_MODEL: process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4o-mini',
     API_BASE_URL: 'https://places.googleapis.com/v1',
     MAPS_API_BASE_URL: 'https://maps.googleapis.com/maps/api',
     CACHE_TTL_HOURS: 24,
@@ -16,6 +18,8 @@ const config = {
   production: {
     GOOGLE_PLACES_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || '',
     GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+    OPENAI_MODEL: process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4o-mini',
     API_BASE_URL: 'https://places.googleapis.com/v1',
     MAPS_API_BASE_URL: 'https://maps.googleapis.com/maps/api',
     CACHE_TTL_HOURS: 24,
