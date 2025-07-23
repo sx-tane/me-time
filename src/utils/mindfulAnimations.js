@@ -1,4 +1,5 @@
 import { Animated, Easing } from 'react-native';
+import { getAnimationConfig } from './platformDetection';
 
 export const MINDFUL_TIMINGS = {
   breath: {
@@ -41,21 +42,21 @@ export class MindfulAnimations {
 
     const breathCycle = Animated.sequence([
       // Inhale
-      Animated.timing(animatedValue, {
+      Animated.timing(animatedValue, getAnimationConfig({
         toValue: inhaleScale,
         duration: inhaleTime,
         easing: MINDFUL_EASINGS.breath,
         useNativeDriver: true,
-      }),
+      })),
       // Hold
       Animated.delay(holdTime),
       // Exhale
-      Animated.timing(animatedValue, {
+      Animated.timing(animatedValue, getAnimationConfig({
         toValue: exhaleScale,
         duration: exhaleTime,
         easing: MINDFUL_EASINGS.breath,
         useNativeDriver: true,
-      }),
+      })),
       // Pause
       Animated.delay(pauseTime),
     ]);
@@ -75,13 +76,13 @@ export class MindfulAnimations {
       toValue = 1
     } = options;
 
-    return Animated.timing(animatedValue, {
+    return Animated.timing(animatedValue, getAnimationConfig({
       toValue,
       duration,
       delay,
       easing,
       useNativeDriver: true,
-    });
+    }));
   }
 
   static createGentleSlideIn(animatedValue, options = {}) {
@@ -95,13 +96,13 @@ export class MindfulAnimations {
 
     animatedValue.setValue(fromValue);
     
-    return Animated.timing(animatedValue, {
+    return Animated.timing(animatedValue, getAnimationConfig({
       toValue,
       duration,
       delay,
       easing,
       useNativeDriver: true,
-    });
+    }));
   }
 
   static createStaggeredReveal(animatedValues, options = {}) {
@@ -112,13 +113,13 @@ export class MindfulAnimations {
     } = options;
 
     const animations = animatedValues.map((value, index) => 
-      Animated.timing(value, {
+      Animated.timing(value, getAnimationConfig({
         toValue: 1,
         duration,
         delay: index * staggerDelay,
         easing,
         useNativeDriver: true,
-      })
+      }))
     );
 
     return Animated.stagger(staggerDelay, animations);
@@ -134,18 +135,18 @@ export class MindfulAnimations {
 
     return Animated.loop(
       Animated.sequence([
-        Animated.timing(animatedValue, {
+        Animated.timing(animatedValue, getAnimationConfig({
           toValue: maxScale,
           duration: duration / 2,
           easing,
           useNativeDriver: true,
-        }),
-        Animated.timing(animatedValue, {
+        })),
+        Animated.timing(animatedValue, getAnimationConfig({
           toValue: minScale,
           duration: duration / 2,
           easing,
           useNativeDriver: true,
-        }),
+        })),
       ]),
       { iterations: -1 }
     );
@@ -160,18 +161,18 @@ export class MindfulAnimations {
 
     return Animated.loop(
       Animated.sequence([
-        Animated.timing(animatedValue, {
+        Animated.timing(animatedValue, getAnimationConfig({
           toValue: amplitude,
           duration: duration / 2,
           easing,
           useNativeDriver: true,
-        }),
-        Animated.timing(animatedValue, {
+        })),
+        Animated.timing(animatedValue, getAnimationConfig({
           toValue: -amplitude,
           duration: duration / 2,
           easing,
           useNativeDriver: true,
-        }),
+        })),
       ]),
       { iterations: -1 }
     );
@@ -186,20 +187,20 @@ export class MindfulAnimations {
 
     return {
       pressIn: () => {
-        Animated.timing(animatedValue, {
+        Animated.timing(animatedValue, getAnimationConfig({
           toValue: pressedScale,
           duration,
           easing,
           useNativeDriver: true,
-        }).start();
+        })).start();
       },
       pressOut: () => {
-        Animated.timing(animatedValue, {
+        Animated.timing(animatedValue, getAnimationConfig({
           toValue: 1,
           duration: duration * 1.5,
           easing,
           useNativeDriver: true,
-        }).start();
+        })).start();
       }
     };
   }
@@ -219,12 +220,12 @@ export class MindfulAnimations {
       }
       
       sequence.push(
-        Animated.timing(value, {
+        Animated.timing(value, getAnimationConfig({
           toValue: 1,
           duration: contemplationTime,
           easing,
           useNativeDriver: true,
-        })
+        }))
       );
     });
 

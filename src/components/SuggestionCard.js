@@ -5,21 +5,27 @@ import MindfulContainer from './MindfulContainer';
 import ChillButton from './ChillButton';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
 import { contemplate, MINDFUL_DELAYS } from '../services/mindfulTiming';
+import { getAnimationConfig, getShadowStyles } from '../utils/platformDetection';
 import colors from '../constants/colors';
 
-export const SuggestionCard = ({ suggestion, onSkip }) => {
+export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false }) => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const iconBreathAnim = useRef(new Animated.Value(1)).current;
   const [isContemplating, setIsContemplating] = useState(false);
 
   useEffect(() => {
+    // Reset scale for entrance animation
+    scaleAnim.setValue(0.9);
+    
     // Gentle entrance animation
-    Animated.timing(scaleAnim, {
+    const scaleAnimation = Animated.timing(scaleAnim, getAnimationConfig({
       toValue: 1,
       duration: MINDFUL_TIMINGS.gentle.slow,
       easing: require('react-native').Easing.bezier(0.25, 0.46, 0.45, 0.94),
       useNativeDriver: true,
-    }).start();
+    }));
+    
+    scaleAnimation.start();
 
     // Start gentle breathing animation for the icon
     const breathingAnimation = MindfulAnimations.createBreathingAnimation(iconBreathAnim, {
@@ -34,7 +40,10 @@ export const SuggestionCard = ({ suggestion, onSkip }) => {
     breathingAnimation.start();
 
     return () => {
+      // Proper cleanup for both animations
+      scaleAnimation.stop && scaleAnimation.stop();
       breathingAnimation.stop && breathingAnimation.stop();
+      iconBreathAnim.stopAnimation && iconBreathAnim.stopAnimation();
     };
   }, [suggestion]);
 
@@ -80,6 +89,12 @@ export const SuggestionCard = ({ suggestion, onSkip }) => {
             {suggestion.text || suggestion.title}
           </Text>
           
+          {suggestion.description && (
+            <Text style={styles.suggestionDescription}>
+              {suggestion.description}
+            </Text>
+          )}
+          
           {suggestion.type && (
             <Text style={styles.suggestionType}>
               A {suggestion.type} moment
@@ -96,11 +111,11 @@ export const SuggestionCard = ({ suggestion, onSkip }) => {
         {/* Contemplative skip button */}
         <View style={styles.actionContainer}>
           <ChillButton
-            title={isContemplating ? "Contemplating..." : "Perhaps another time"}
+            title={skipLoading ? "Finding a new moment..." : isContemplating ? "Contemplating..." : "Perhaps another time"}
             onPress={handleContemplativeSkip}
             variant="zen"
             size="medium"
-            disabled={isContemplating}
+            disabled={isContemplating || skipLoading}
             contemplativePress={true}
             style={styles.skipButton}
           />
@@ -119,11 +134,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 36,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
+    ...getShadowStyles({
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 6,
+    }),
     minHeight: 280,
     justifyContent: 'space-between',
   },
@@ -150,6 +167,15 @@ const styles = StyleSheet.create({
     lineHeight: 36,
     letterSpacing: -0.3,
     marginBottom: 12,
+  },
+  suggestionDescription: {
+    fontSize: 16,
+    color: colors.lightText,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    fontWeight: '400',
   },
   suggestionType: {
     fontSize: 16,

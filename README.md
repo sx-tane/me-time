@@ -44,12 +44,35 @@ Me Time isn't another productivity app competing for your attention. It's an inv
    npm install
    ```
 
-3. **Start the development server**
+3. **Configure API Keys**
+   
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Then edit `.env` and add your API keys:
+   
+   - **Google Places API Key** (Required for location features):
+     - Get it from [Google Cloud Console](https://console.cloud.google.com/apis/)
+     - Enable "Places API (New)" and "Maps JavaScript API"
+     - Add to `.env`: `EXPO_PUBLIC_GOOGLE_PLACES_API_KEY=your_key_here`
+   
+   - **Google Maps API Key** (Optional, for legacy support):
+     - Same console as above
+     - Add to `.env`: `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here`
+   
+   - **OpenAI API Key** (Optional, for AI-generated tasks):
+     - Get it from [OpenAI Platform](https://platform.openai.com/api-keys)
+     - Add to `.env`: `EXPO_PUBLIC_OPENAI_API_KEY=your_key_here`
+     - Without this key, the app will use pre-defined mindful tasks
+
+4. **Start the development server**
    ```bash
    npx expo start
    ```
 
-4. **Run on your device**
+5. **Run on your device**
    - Download the Expo Go app on your phone
    - Scan the QR code displayed in your terminal
    - The app will load on your device

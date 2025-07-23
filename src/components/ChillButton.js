@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
 import { COLORS } from '../constants/colors';
+import { getAnimationConfig } from '../utils/platformDetection';
 
 const ChillButton = ({ 
   title,
@@ -47,22 +48,22 @@ const ChillButton = ({
     
     // Gentle press animation
     Animated.parallel([
-      Animated.timing(scaleAnim, {
+      Animated.timing(scaleAnim, getAnimationConfig({
         toValue: 0.98,
         duration: 150,
         useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
+      })),
+      Animated.timing(opacityAnim, getAnimationConfig({
         toValue: 0.8,
         duration: 150,
         useNativeDriver: true,
-      }),
+      })),
       // Ripple effect
-      ripple && Animated.timing(rippleAnim, {
+      ripple && Animated.timing(rippleAnim, getAnimationConfig({
         toValue: 1,
         duration: 600,
         useNativeDriver: true,
-      }),
+      })),
     ]).start();
   };
 
@@ -75,21 +76,21 @@ const ChillButton = ({
     
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(scaleAnim, {
+        Animated.timing(scaleAnim, getAnimationConfig({
           toValue: 1,
           duration: contemplativePress ? 800 : 200,
           useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
+        })),
+        Animated.timing(opacityAnim, getAnimationConfig({
           toValue: 1,
           duration: contemplativePress ? 800 : 200,
           useNativeDriver: true,
-        }),
-        Animated.timing(rippleAnim, {
+        })),
+        Animated.timing(rippleAnim, getAnimationConfig({
           toValue: 0,
           duration: 400,
           useNativeDriver: true,
-        }),
+        })),
       ]).start();
     }, releaseDelay);
   };

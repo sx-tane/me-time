@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 import config from '../config/environment';
+import { isWeb } from '../utils/platformDetection';
 
 const GOOGLE_PLACES_API_KEY = config.GOOGLE_PLACES_API_KEY;
 const GOOGLE_MAPS_API_KEY = config.GOOGLE_MAPS_API_KEY;
@@ -66,6 +68,23 @@ class PlacesService {
   }
 
   async _fetchNearbyPlaces(latitude, longitude, radius, types, maxResults) {
+    if (config.ENABLE_DEBUG_LOGS) {
+      console.log('🗺️ Platform detection - isWeb:', isWeb);
+      console.log('🗺️ Platform.OS:', Platform?.OS);
+      console.log('🗺️ Process:', typeof process !== 'undefined' ? process.platform : 'undefined');
+      console.log('🗺️ Navigator:', typeof navigator !== 'undefined' ? navigator.userAgent : 'undefined');
+    }
+    
+    // Only use demo data if we're on web AND API keys aren't configured
+    const isActuallyWeb = isWeb && typeof navigator !== 'undefined' && 
+                          navigator.userAgent && (!GOOGLE_PLACES_API_KEY || !GOOGLE_MAPS_API_KEY);
+    
+    if (isActuallyWeb) {
+      console.log('🌐 Web environment with missing API keys detected, using demo places data');
+      return this._getDemoPlacesForWeb(latitude, longitude, types, maxResults);
+    }
+    
+    console.log('📱 Platform with API keys configured, using real Places API');
     try {
       return await this._fetchWithNewPlacesAPI(latitude, longitude, radius, types, maxResults);
     } catch (newApiError) {
@@ -77,10 +96,54 @@ class PlacesService {
   async _fetchWithNewPlacesAPI(latitude, longitude, radius, types, maxResults) {
     const url = 'https://places.googleapis.com/v1/places:searchNearby';
     
-    const fieldMask = 'places.displayName,places.formattedAddress,places.internationalPhoneNumber,places.websiteUri,places.rating,places.googleMapsUri,places.regularOpeningHours,places.photos,places.location,places.types';
+    if (!GOOGLE_PLACES_API_KEY) {
+      throw new Error('Google Places API key not configured');
+    }
+    
+    const fieldMask = 'places.displayName,places.formattedAddress,places.rating,places.location,places.types';
+
+    // Comprehensive mapping for Google Places API v1 types
+    const typeMapping = {
+      'park': 'park',
+      'garden': 'park', 
+      'spa': 'spa',
+      'cafe': 'cafe',
+      'restaurant': 'restaurant',
+      'museum': 'museum',
+      'library': 'library',
+      'tourist_attraction': 'tourist_attraction',
+      'shopping_mall': 'shopping_mall',
+      'fitness_center': 'gym',
+      'art_gallery': 'art_gallery',
+      'botanical_garden': 'park',
+      'gym': 'gym',
+      'store': 'store',
+      'shopping_center': 'shopping_mall',
+      'book_store': 'book_store',
+      'church': 'church',
+      'hospital': 'hospital',
+      'pharmacy': 'pharmacy',
+      'bank': 'bank',
+      'atm': 'atm',
+      'gas_station': 'gas_station',
+      'school': 'school',
+      'university': 'university',
+      'trail': 'park',  // Map trail to park since Google Places API doesn't support 'trail'
+      'walking_path': 'park'  // Also map walking_path to park for consistency
+    };
+
+    // Convert requested types to valid Google Places API types
+    const validTypes = types
+      .map(type => typeMapping[type] || type)
+      .filter((type, index, self) => self.indexOf(type) === index); // Remove duplicates
+
+    if (config.ENABLE_DEBUG_LOGS) {
+      console.log('🏷️ Original types:', types);
+      console.log('🏷️ Mapped types:', validTypes);
+    }
 
     const requestBody = {
-      includedTypes: types,
+      includedTypes: validTypes,
       maxResultCount: Math.min(maxResults, 20),
       locationRestriction: {
         circle: {
@@ -94,6 +157,20 @@ class PlacesService {
       languageCode: 'en'
     };
 
+    // If no valid types mapped, use broader search categories
+    if (validTypes.length === 0) {
+      requestBody.includedTypes = ['establishment', 'point_of_interest'];
+      // Remove includedTypes and use includedPrimaryTypes for broader search
+      delete requestBody.includedTypes;
+      requestBody.includedPrimaryTypes = ['establishment'];
+    }
+
+    console.log('Making Places API request:', { types, location: { latitude, longitude }, radius });
+    if (config.ENABLE_DEBUG_LOGS) {
+      console.log('📨 Request body:', JSON.stringify(requestBody, null, 2));
+    }
+    console.log('🔑 API key configured:', !!GOOGLE_PLACES_API_KEY);
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -104,12 +181,56 @@ class PlacesService {
       body: JSON.stringify(requestBody)
     });
 
+    console.log('📥 Places API response status:', response.status);
+    
     if (!response.ok) {
-      throw new Error(`New Places API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Places API error:', response.status, errorText);
+      throw new Error(`New Places API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    return this._formatNewAPIResults(data.places || []);
+    if (config.ENABLE_DEBUG_LOGS && data.places?.length > 0) {
+      console.log('📊 Raw API response sample:', JSON.stringify(data.places[0], null, 2));
+    }
+    console.log('📊 API returned', data.places?.length || 0, 'places');
+    let formattedResults = this._formatNewAPIResults(data.places || []);
+    console.log('✨ Formatted results count:', formattedResults.length);
+    
+    // If no results, try a broader search with common place types
+    if (formattedResults.length === 0 && validTypes.length > 0) {
+      console.log('🔄 No results found, trying broader search...');
+      const broadRequestBody = {
+        maxResultCount: Math.min(maxResults, 10),
+        locationRestriction: requestBody.locationRestriction,
+        languageCode: 'en'
+      };
+      
+      // Try without any type restrictions for maximum results
+      if (radius > 2000) {
+        broadRequestBody.rankPreference = 'DISTANCE';
+      }
+      
+      const broadResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': fieldMask
+        },
+        body: JSON.stringify(broadRequestBody)
+      });
+      
+      if (broadResponse.ok) {
+        const broadData = await broadResponse.json();
+        formattedResults = this._formatNewAPIResults(broadData.places || []);
+        console.log('🎯 Broader search found:', formattedResults.length, 'places');
+      } else {
+        console.warn('🔄 Broader search also failed:', broadResponse.status);
+      }
+    }
+    
+    return formattedResults;
   }
 
   async _fetchWithLegacyAPI(latitude, longitude, radius, types, maxResults) {
@@ -130,8 +251,8 @@ class PlacesService {
   }
 
   _formatNewAPIResults(places) {
-    return places.map(place => ({
-      id: place.displayName?.text || 'unknown',
+    return places.map((place, index) => ({
+      id: place.id || `place_${Date.now()}_${index}`,
       name: place.displayName?.text || 'Unknown Place',
       address: place.formattedAddress || '',
       phone: place.internationalPhoneNumber || null,
@@ -240,6 +361,116 @@ class PlacesService {
       console.error('Error getting random place:', error);
       return null;
     }
+  }
+
+  _getDemoPlacesForWeb(latitude, longitude, types, maxResults) {
+    // Demo places data for web platform
+    const demoPlaces = [
+      {
+        id: 'demo_park_1',
+        name: 'Serenity Garden Park',
+        address: '123 Peaceful Lane, Nearby',
+        phone: null,
+        website: 'https://example.com/serenity-park',
+        rating: 4.8,
+        googleMapsUrl: null,
+        openingHours: ['Monday: 6:00 AM – 10:00 PM', 'Tuesday: 6:00 AM – 10:00 PM', 'Wednesday: 6:00 AM – 10:00 PM'],
+        location: { lat: latitude + 0.005, lng: longitude + 0.003 },
+        types: ['park', 'garden'],
+        photos: []
+      },
+      {
+        id: 'demo_cafe_1',
+        name: 'Mindful Moments Café',
+        address: '456 Zen Street, Downtown',
+        phone: '+1 234-567-8901',
+        website: 'https://example.com/mindful-cafe',
+        rating: 4.6,
+        googleMapsUrl: null,
+        openingHours: ['Monday: 7:00 AM – 8:00 PM', 'Tuesday: 7:00 AM – 8:00 PM'],
+        location: { lat: latitude - 0.003, lng: longitude + 0.004 },
+        types: ['cafe', 'restaurant'],
+        photos: []
+      },
+      {
+        id: 'demo_library_1',
+        name: 'Central Peace Library',
+        address: '789 Quiet Avenue',
+        phone: '+1 234-567-8902',
+        website: null,
+        rating: 4.9,
+        googleMapsUrl: null,
+        openingHours: ['Monday: 9:00 AM – 9:00 PM', 'Tuesday: 9:00 AM – 9:00 PM'],
+        location: { lat: latitude + 0.002, lng: longitude - 0.006 },
+        types: ['library'],
+        photos: []
+      },
+      {
+        id: 'demo_museum_1',
+        name: 'Museum of Tranquil Arts',
+        address: '321 Culture Boulevard',
+        phone: '+1 234-567-8903',
+        website: 'https://example.com/tranquil-museum',
+        rating: 4.7,
+        googleMapsUrl: null,
+        openingHours: ['Monday: 10:00 AM – 6:00 PM', 'Tuesday: 10:00 AM – 6:00 PM'],
+        location: { lat: latitude - 0.004, lng: longitude - 0.002 },
+        types: ['museum', 'art_gallery'],
+        photos: []
+      },
+      {
+        id: 'demo_spa_1',
+        name: 'Blissful Wellness Spa',
+        address: '555 Relaxation Road',
+        phone: '+1 234-567-8904',
+        website: 'https://example.com/blissful-spa',
+        rating: 4.9,
+        googleMapsUrl: null,
+        openingHours: ['Monday: 9:00 AM – 10:00 PM', 'Tuesday: 9:00 AM – 10:00 PM'],
+        location: { lat: latitude + 0.006, lng: longitude - 0.004 },
+        types: ['spa', 'health'],
+        photos: []
+      },
+      {
+        id: 'demo_garden_1',
+        name: 'Zen Botanical Gardens',
+        address: '888 Flora Way',
+        phone: null,
+        website: null,
+        rating: 4.8,
+        googleMapsUrl: null,
+        openingHours: ['Monday: 8:00 AM – 7:00 PM', 'Tuesday: 8:00 AM – 7:00 PM'],
+        location: { lat: latitude - 0.007, lng: longitude + 0.005 },
+        types: ['botanical_garden', 'park'],
+        photos: []
+      }
+    ];
+
+    // Filter places based on requested types
+    let filteredPlaces = demoPlaces;
+    if (types && types.length > 0) {
+      console.log('🔍 Filtering demo places for types:', types);
+      filteredPlaces = demoPlaces.filter(place => {
+        const matches = place.types.some(placeType => 
+          types.some(requestedType => 
+            placeType.includes(requestedType) || requestedType.includes(placeType)
+          )
+        );
+        if (matches) {
+          console.log(`✅ ${place.name} matches (types: ${place.types.join(', ')})`);
+        }
+        return matches;
+      });
+      console.log(`📊 Found ${filteredPlaces.length} matching places`);
+    }
+
+    // If no places match the types, return some default places
+    if (filteredPlaces.length === 0) {
+      filteredPlaces = demoPlaces.slice(0, 3);
+    }
+
+    // Return up to maxResults places
+    return filteredPlaces.slice(0, maxResults);
   }
 
   async clearCache() {

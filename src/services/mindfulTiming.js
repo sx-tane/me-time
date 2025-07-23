@@ -133,21 +133,4 @@ export const createStaggeredTiming = (count, delay) =>
 
 export const MINDFUL_DELAYS = MindfulTiming.DELAYS;
 
-// React hook for mindful timing
-export const useMindfulTiming = () => {
-  React.useEffect(() => {
-    return () => {
-      mindfulTiming.cleanup();
-    };
-  }, []);
-
-  return {
-    contemplate,
-    breathe,
-    findPeacefulMoment,
-    createStaggeredTiming,
-    delays: MINDFUL_DELAYS
-  };
-};
-
 export default mindfulTiming;

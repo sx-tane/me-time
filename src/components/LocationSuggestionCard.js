@@ -3,20 +3,26 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, Image } from 'react-
 import { COLORS } from '../constants/colors';
 
 const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
-  const { locationSuggestion } = suggestion;
+  // Handle both formats: old (with locationSuggestion) and new (direct place)
+  const locationSuggestion = suggestion.locationSuggestion || suggestion;
+  const place = locationSuggestion.place || suggestion.place;
+  const distance = locationSuggestion.distance || suggestion.distance;
   
-  if (!locationSuggestion?.place) {
+  if (!place) {
     return null;
   }
-
-  const { place, distance } = locationSuggestion;
 
   const handleOpenMaps = () => {
     if (place.googleMapsUrl) {
       Linking.openURL(place.googleMapsUrl);
     } else if (place.location) {
-      const url = `https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}`;
-      Linking.openURL(url);
+      // Handle both lat/lng and latitude/longitude formats
+      const lat = place.location.lat || place.location.latitude;
+      const lng = place.location.lng || place.location.longitude;
+      if (lat && lng) {
+        const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        Linking.openURL(url);
+      }
     }
   };
 
@@ -47,13 +53,20 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
       <View style={styles.header}>
-        <Text style={styles.title}>{suggestion.title}</Text>
-        <Text style={styles.distance}>{formatDistance(distance)}</Text>
+        <Text style={styles.title}>{suggestion.title || `Visit ${place.name}`}</Text>
+        {distance !== undefined && (
+          <Text style={styles.distance}>{formatDistance(distance)}</Text>
+        )}
       </View>
       
       <View style={styles.placeInfo}>
         <Text style={styles.placeName}>{place.name}</Text>
-        <Text style={styles.address}>{place.address}</Text>
+        {place.address && (
+          <Text style={styles.address}>{place.address}</Text>
+        )}
+        {suggestion.description && (
+          <Text style={styles.description}>{suggestion.description}</Text>
+        )}
         
         <View style={styles.details}>
           {place.rating && (
@@ -214,6 +227,13 @@ const styles = StyleSheet.create({
     color: COLORS.lightText,
     lineHeight: 16,
     fontWeight: '300',
+  },
+  description: {
+    fontSize: 13,
+    color: COLORS.lightText,
+    marginTop: 8,
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
 });
 

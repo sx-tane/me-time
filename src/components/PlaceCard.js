@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../constants/colors';
+import { getShadowStyles } from '../utils/platformDetection';
 
 export const PlaceCard = ({ place }) => (
   <TouchableOpacity style={styles.placeCard} activeOpacity={0.8}>
@@ -21,11 +22,13 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    ...getShadowStyles({
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 5,
+      elevation: 2,
+    }),
   },
   placeCardContent: {
     flexDirection: 'row',

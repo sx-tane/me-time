@@ -6,12 +6,16 @@ import { PlaceCard } from '../components/PlaceCard';
 import { GentleButton } from '../components/GentleButton';
 import ChillButton from '../components/ChillButton';
 import LocationSuggestionCard from '../components/LocationSuggestionCard';
+import PeacefulLoader from '../components/PeacefulLoader';
+import MindfulContainer from '../components/MindfulContainer';
 import { COLORS, ZEN_THEMES } from '../constants/colors';
 import { 
   getAIEnhancedPeacefulSpots, 
   getAIEnhancedInterestingSpots, 
-  generateZenTasksForCurrentMoment 
+  generateZenTasksForCurrentMoment,
+  searchSpotsForTask 
 } from '../services/suggestionService';
+import { getShadowStyles } from '../utils/platformDetection';
 
 export const DiscoverScreen = () => {
   const [locationPermission, setLocationPermission] = useState(false);
@@ -21,6 +25,9 @@ export const DiscoverScreen = () => {
   const [interestingSpots, setInterestingSpots] = useState([]);
   const [aiTasks, setAiTasks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [taskRelatedSpots, setTaskRelatedSpots] = useState([]);
+  const [loadingAbortController, setLoadingAbortController] = useState(null);
 
   useEffect(() => {
     checkLocationPermission();
@@ -32,6 +39,15 @@ export const DiscoverScreen = () => {
     }
   }, [locationPermission, currentMode, keywords]);
 
+  // Cleanup effect to cancel pending requests on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingAbortController) {
+        loadingAbortController.abort();
+      }
+    };
+  }, [loadingAbortController]);
+
   const checkLocationPermission = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     setLocationPermission(status === 'granted');
@@ -40,24 +56,69 @@ export const DiscoverScreen = () => {
   const loadContent = async () => {
     if (!locationPermission) return;
     
+    // Cancel any existing loading request
+    if (loadingAbortController) {
+      loadingAbortController.abort();
+    }
+    
+    // Prevent duplicate requests if already loading
+    if (loading) return;
+    
+    const abortController = new AbortController();
+    setLoadingAbortController(abortController);
     setLoading(true);
+    setSelectedTask(null);
+    setTaskRelatedSpots([]);
+    
     try {
       const keywordList = keywords.split(',').map(k => k.trim()).filter(k => k);
       
+      if (abortController.signal.aborted) return;
+      
       if (currentMode === 'peaceful') {
         const spots = await getAIEnhancedPeacefulSpots(keywordList, { maxResults: 8 });
-        setPeacefulSpots(spots);
+        if (!abortController.signal.aborted) {
+          setPeacefulSpots(spots);
+        }
       } else if (currentMode === 'interesting') {
         const spots = await getAIEnhancedInterestingSpots(keywordList, { maxResults: 8 });
-        setInterestingSpots(spots);
+        if (!abortController.signal.aborted) {
+          setInterestingSpots(spots);
+        }
       } else if (currentMode === 'tasks') {
         const tasks = await generateZenTasksForCurrentMoment(keywordList);
-        setAiTasks(tasks);
+        if (!abortController.signal.aborted) {
+          setAiTasks(tasks);
+        }
       }
     } catch (error) {
-      console.error('Error loading content:', error);
+      if (!abortController.signal.aborted) {
+        console.error('Error loading content:', error);
+      }
     } finally {
-      setLoading(false);
+      if (!abortController.signal.aborted) {
+        setLoading(false);
+        setLoadingAbortController(null);
+      }
+    }
+  };
+
+  const handleTaskSelection = async (task) => {
+    if (selectedTask?.id === task.id) {
+      // Deselect if clicking the same task
+      setSelectedTask(null);
+      setTaskRelatedSpots([]);
+      return;
+    }
+    
+    setSelectedTask(task);
+    setTaskRelatedSpots([]);
+    
+    try {
+      const spots = await searchSpotsForTask(task);
+      setTaskRelatedSpots(spots);
+    } catch (error) {
+      console.error('Error searching spots for task:', error);
     }
   };
 
@@ -104,10 +165,19 @@ export const DiscoverScreen = () => {
 
   const renderContent = () => {
     if (loading) {
+      const loadingMessages = {
+        peaceful: "Finding peaceful spots to soothe your soul...",
+        interesting: "Discovering fascinating places nearby...",
+        tasks: "Creating mindful moments for you..."
+      };
+      
       return (
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Finding peaceful moments...</Text>
-        </View>
+        <MindfulContainer fadeIn style={styles.loadingContainer}>
+          <PeacefulLoader 
+            message={loadingMessages[currentMode] || "Finding peaceful moments..."} 
+            variant="floating"
+          />
+        </MindfulContainer>
       );
     }
 
@@ -155,7 +225,12 @@ export const DiscoverScreen = () => {
             {aiTasks.length > 0 ? `${aiTasks.length} mindful activities for this moment` : 'Mindful activities for this moment'}
           </Text>
           {aiTasks.map((task, index) => (
-            <View key={`task_${index}`} style={styles.taskCard}>
+            <TouchableOpacity 
+              key={`task_${index}`} 
+              style={[styles.taskCard, selectedTask?.id === task.id && styles.selectedTaskCard]}
+              onPress={() => handleTaskSelection(task)}
+              activeOpacity={0.7}
+            >
               <View style={styles.taskHeader}>
                 <Ionicons 
                   name={task.icon || 'leaf-outline'} 
@@ -169,8 +244,26 @@ export const DiscoverScreen = () => {
                 <Text style={styles.taskTime}>{task.timeEstimate}</Text>
                 <Text style={styles.taskCategory}>{task.category}</Text>
               </View>
-            </View>
+              {selectedTask?.id === task.id && (
+                <View style={styles.taskAction}>
+                  <Text style={styles.taskActionText}>🔍 Finding places for this task...</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           ))}
+          
+          {selectedTask && taskRelatedSpots.length > 0 && (
+            <View style={styles.relatedSpotsSection}>
+              <Text style={styles.relatedSpotsTitle}>Perfect spots for: {selectedTask.title}</Text>
+              {taskRelatedSpots.map((spot, index) => (
+                <LocationSuggestionCard 
+                  key={`related_${index}`} 
+                  suggestion={spot} 
+                  style={styles.zenCard}
+                />
+              ))}
+            </View>
+          )}
         </View>
       );
     }
@@ -252,11 +345,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeModeButton: {
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    ...getShadowStyles({
+      shadowColor: COLORS.accent,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+    }),
   },
   keywordSection: {
     marginBottom: 25,
@@ -304,11 +399,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: 20,
     marginBottom: 16,
-    shadowColor: COLORS.stone,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...getShadowStyles({
+      shadowColor: COLORS.stone,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    }),
     borderWidth: 1,
     borderColor: COLORS.divider,
   },
@@ -319,11 +416,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: COLORS.divider,
-    shadowColor: COLORS.stone,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    ...getShadowStyles({
+      shadowColor: COLORS.stone,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
+    }),
   },
   taskHeader: {
     flexDirection: 'row',
@@ -361,6 +460,37 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
     textTransform: 'lowercase',
+  },
+  selectedTaskCard: {
+    borderColor: COLORS.accent,
+    borderWidth: 2,
+    backgroundColor: COLORS.accentSoft,
+  },
+  taskAction: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.divider,
+  },
+  taskActionText: {
+    fontSize: 13,
+    color: COLORS.accent,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  relatedSpotsSection: {
+    marginTop: 30,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.divider,
+  },
+  relatedSpotsTitle: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: COLORS.primary,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   permissionCard: {
     backgroundColor: COLORS.mist,

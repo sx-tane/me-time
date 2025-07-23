@@ -20,12 +20,15 @@ class LocationService {
 
   async getCurrentLocation(useCache = true) {
     try {
+      console.log('Getting current location, useCache:', useCache);
+      
       if (useCache && this.lastKnownLocation) {
         const now = Date.now();
         const locationAge = now - this.lastKnownLocation.timestamp;
         const fiveMinutes = 5 * 60 * 1000;
         
         if (locationAge < fiveMinutes) {
+          console.log('Using cached location');
           return {
             latitude: this.lastKnownLocation.latitude,
             longitude: this.lastKnownLocation.longitude
@@ -33,15 +36,20 @@ class LocationService {
         }
       }
 
+      console.log('Requesting location permissions...');
       const hasPermission = await this.requestPermissions();
+      console.log('Location permission granted:', hasPermission);
+      
       if (!hasPermission) {
         const cachedLocation = await this.getCachedLocation();
         if (cachedLocation) {
+          console.log('Using fallback cached location');
           return cachedLocation;
         }
         throw new Error('Location permission denied and no cached location available');
       }
 
+      console.log('Getting current position...');
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
         maximumAge: 300000, // 5 minutes

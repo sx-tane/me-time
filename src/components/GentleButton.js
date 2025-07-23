@@ -1,16 +1,17 @@
 import React, { useRef, useEffect } from 'react';
 import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native';
 import colors from '../constants/colors';
+import { getAnimationConfig } from '../utils/platformDetection';
 
 export const GentleButton = ({ title, onPress, style, variant = 'primary' }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
+    Animated.timing(fadeAnim, getAnimationConfig({
       toValue: 1,
       duration: 500,
       useNativeDriver: true,
-    }).start();
+    })).start();
   }, []);
 
   return (

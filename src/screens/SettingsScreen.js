@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { GentleButton } from '../components/GentleButton';
 import { STORAGE_KEYS } from '../constants/storage';
 import colors from '../constants/colors';
+import { clearAllCache } from '../utils/clearAllCache';
 
 export const SettingsScreen = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -57,6 +58,28 @@ export const SettingsScreen = () => {
     );
   };
 
+  const clearCache = () => {
+    Alert.alert(
+      "Clear suggestions cache?",
+      "This will refresh all suggestions and location data. Your settings will remain.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Clear Cache", 
+          onPress: async () => {
+            try {
+              await clearAllCache();
+              Alert.alert("Success", "Cache cleared! You'll get fresh suggestions now.");
+            } catch (error) {
+              console.error('Error clearing cache:', error);
+              Alert.alert("Error", "Failed to clear cache. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -89,12 +112,21 @@ export const SettingsScreen = () => {
           </Text>
         </View>
         
-        <GentleButton
-          title="Clear all data"
-          onPress={clearAllData}
-          variant="ghost"
-          style={{ marginTop: 20 }}
-        />
+        <View style={styles.buttonsContainer}>
+          <GentleButton
+            title="Clear cache"
+            onPress={clearCache}
+            variant="secondary"
+            style={styles.button}
+          />
+          
+          <GentleButton
+            title="Clear all data"
+            onPress={clearAllData}
+            variant="ghost"
+            style={styles.button}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -146,5 +178,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     lineHeight: 24,
+  },
+  buttonsContainer: {
+    marginTop: 30,
+    gap: 12,
+  },
+  button: {
+    marginVertical: 6,
   },
 });

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GentleButton } from '../components/GentleButton';
 import { STORAGE_KEYS } from '../constants/storage';
+import { getAnimationConfig } from '../utils/platformDetection';
 import colors from '../constants/colors';
 
 const steps = [
@@ -29,11 +30,11 @@ export const WelcomeScreen = ({ navigation }) => {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
+    Animated.timing(fadeAnim, getAnimationConfig({
       toValue: 1,
       duration: 1000,
       useNativeDriver: true,
-    }).start();
+    })).start();
   }, [step]);
 
   const completeOnboarding = async () => {
