@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     borderColor: colors.lightText,
   },
   buttonText: {
-    color: '#FFF',
+    color: colors.WHITE,
     fontSize: 16,
     fontWeight: '600',
   },

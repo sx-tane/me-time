@@ -6,12 +6,15 @@ import ChillButton from './ChillButton';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
 import { contemplate, MINDFUL_DELAYS } from '../services/mindfulTiming';
 import { getAnimationConfig, getShadowStyles } from '../utils/platformDetection';
-import colors from '../constants/colors';
+import colors, { ROUNDED_DESIGN } from '../constants/colors';
 
-export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false }) => {
+export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false, loadingStage = null }) => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const iconBreathAnim = useRef(new Animated.Value(1)).current;
   const [isContemplating, setIsContemplating] = useState(false);
+
+  // Debug log for loading states
+  console.log('🎯 SuggestionCard render - skipLoading:', skipLoading, 'loadingStage:', loadingStage);
 
   useEffect(() => {
     // Reset scale for entrance animation
@@ -48,14 +51,19 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false }) => {
   }, [suggestion]);
 
   const handleContemplativeSkip = async () => {
-    if (isContemplating) return;
+    if (isContemplating || skipLoading) {
+      console.log('🚫 Skip blocked - isContemplating:', isContemplating, 'skipLoading:', skipLoading);
+      return;
+    }
     
+    console.log('✅ Starting contemplative skip');
     setIsContemplating(true);
     
     // Give user a moment to contemplate the decision
     await contemplate(MINDFUL_DELAYS.thoughtfulAction, 'considering_skip');
     
     if (onSkip) {
+      console.log('🔄 Calling onSkip function');
       onSkip();
     }
     
@@ -86,7 +94,7 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false }) => {
         {/* Spacious text layout */}
         <View style={styles.textContainer}>
           <Text style={styles.suggestionText}>
-            {suggestion.text || suggestion.title}
+            {suggestion?.text || suggestion?.title || ''}
           </Text>
           
           {suggestion.description && (
@@ -111,7 +119,19 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false }) => {
         {/* Contemplative skip button */}
         <View style={styles.actionContainer}>
           <ChillButton
-            title={skipLoading ? "Finding a new moment..." : isContemplating ? "Contemplating..." : "Perhaps another time"}
+            title={
+              skipLoading 
+                ? (loadingStage === 'generating' 
+                    ? "🤖 AI is creating your new moment..." 
+                    : loadingStage === 'locations' 
+                      ? "🗺️ Finding peaceful nearby spots..." 
+                      : loadingStage === 'finalizing'
+                        ? "✨ Preparing everything for you..."
+                        : "🔄 Finding a fresh moment for you...")
+                : isContemplating 
+                  ? "Contemplating..." 
+                  : "Perhaps another time"
+            }
             onPress={handleContemplativeSkip}
             variant="zen"
             size="medium"
@@ -127,55 +147,55 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false }) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    marginVertical: 8,
+    marginVertical: ROUNDED_DESIGN.spacing.gentle,
+    marginHorizontal: ROUNDED_DESIGN.spacing.minimal,
   },
   suggestionCard: {
     backgroundColor: colors.card,
-    borderRadius: 24,
-    padding: 36,
+    borderRadius: ROUNDED_DESIGN.radius.flowing,
+    padding: ROUNDED_DESIGN.spacing.generous,
+    paddingVertical: ROUNDED_DESIGN.spacing.expansive,
     alignItems: 'center',
-    ...getShadowStyles({
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 16,
-      elevation: 6,
-    }),
-    minHeight: 280,
+    ...ROUNDED_DESIGN.shadows.soft,
+    minHeight: 320,
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   iconContainer: {
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: colors.primary + '10',
-    borderRadius: 50,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    padding: ROUNDED_DESIGN.spacing.comfortable,
+    backgroundColor: colors.accent + '20',
+    borderRadius: ROUNDED_DESIGN.radius.organic,
     alignItems: 'center',
     justifyContent: 'center',
+    ...ROUNDED_DESIGN.shadows.gentle,
   },
   textContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
-    marginVertical: 16,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
+    marginVertical: ROUNDED_DESIGN.spacing.comfortable,
   },
   suggestionText: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '500',
     color: colors.text,
     textAlign: 'center',
-    lineHeight: 36,
-    letterSpacing: -0.3,
-    marginBottom: 12,
+    lineHeight: 38,
+    letterSpacing: -0.2,
+    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
+    fontFamily: 'System',
   },
   suggestionDescription: {
-    fontSize: 16,
+    fontSize: 17,
     color: colors.lightText,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-    fontWeight: '400',
+    lineHeight: 26,
+    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.gentle,
+    fontWeight: '300',
   },
   suggestionType: {
     fontSize: 16,
@@ -185,16 +205,16 @@ const styles = StyleSheet.create({
   },
   timeEstimate: {
     fontSize: 14,
-    color: colors.primary,
+    color: colors.accent,
     fontWeight: '500',
-    backgroundColor: colors.primary + '15',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.accent + '20',
+    paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
+    paddingVertical: ROUNDED_DESIGN.spacing.gentle,
+    borderRadius: ROUNDED_DESIGN.radius.organic,
     overflow: 'hidden',
   },
   actionContainer: {
-    marginTop: 20,
+    marginTop: ROUNDED_DESIGN.spacing.comfortable,
     width: '100%',
     alignItems: 'center',
   },

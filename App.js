@@ -1,36 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StatusBar, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
-import * as Location from 'expo-location';
+import { View, Text, StatusBar, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { SuggestionCard } from './src/components/SuggestionCard';
 import LocationSuggestionCard from './src/components/LocationSuggestionCard';
+import LocationCarousel from './src/components/LocationCarousel';
 import MindfulContainer from './src/components/MindfulContainer';
 import PeacefulLoader from './src/components/PeacefulLoader';
-import { getTodaysSuggestion, getNewSuggestion, getAIEnhancedInterestingSpots } from './src/services/suggestionService';
+import StepByStepLoader from './src/components/StepByStepLoader';
+import LocationVarietyDebug from './src/components/LocationVarietyDebug';
+import { SettingsScreen } from './src/components/SettingsScreen';
+import { getTodaysSuggestion, getNewSuggestion } from './src/services/suggestionService';
+import { notificationService } from './src/services/notificationService';
 import { STORAGE_KEYS } from './src/constants/storage';
-import colors from './src/constants/colors';
+import colors, { ROUNDED_DESIGN } from './src/constants/colors';
 
 export default function App() {
   const [suggestion, setSuggestion] = useState(null);
-  const [interestingSpots, setInterestingSpots] = useState([]);
+  const [previousSuggestion, setPreviousSuggestion] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [spotsLoading, setSpotsLoading] = useState(true);
-  const [locationPermission, setLocationPermission] = useState(false);
+  const [skipLoading, setSkipLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(null);
+  const [currentScreen, setCurrentScreen] = useState('home');
 
   useEffect(() => {
     initializeApp();
   }, []);
 
   const initializeApp = async () => {
-    await checkLocationPermission();
     await loadTodaysSuggestion();
-    await loadInterestingSpots();
-  };
-
-  const checkLocationPermission = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    setLocationPermission(status === 'granted');
+    // Initialize notifications if they're enabled
+    const notificationsEnabled = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS_ENABLED);
+    if (notificationsEnabled === 'true') {
+      await notificationService.scheduleAllNotifications();
+    }
   };
 
   const loadTodaysSuggestion = async () => {
@@ -44,32 +47,65 @@ export default function App() {
     }
   };
 
-  const loadInterestingSpots = async () => {
-    if (!locationPermission) return;
-    
+
+  const handleSkip = async () => {
     try {
-      setSpotsLoading(true);
-      const spots = await getAIEnhancedInterestingSpots([], { maxResults: 6 });
-      setInterestingSpots(spots);
+      setSkipLoading(true);
+      
+      // Stage 1: Generating new task
+      setLoadingStage('generating');
+      console.log('🤖 Stage 1: Generating task...');
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      // Stage 2: Finding locations
+      setLoadingStage('locations');
+      console.log('🗺️ Stage 2: Finding locations...');
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const newSuggestion = await getNewSuggestion(suggestion);
+      
+      // Stage 3: Finalizing
+      setLoadingStage('finalizing');
+      console.log('✨ Stage 3: Finalizing...');
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
+      // Store previous suggestion for variety analysis
+      setPreviousSuggestion(suggestion);
+      setSuggestion(newSuggestion);
+      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_SUGGESTION, JSON.stringify(newSuggestion));
+      
+      console.log('✅ Skip complete with new suggestion:', newSuggestion?.title);
     } catch (error) {
-      console.error('Error loading interesting spots:', error);
+      console.error('❌ Error in handleSkip:', error);
     } finally {
-      setSpotsLoading(false);
+      setSkipLoading(false);
+      setLoadingStage(null);
     }
   };
 
-  const handleSkip = async () => {
-    const newSuggestion = await getNewSuggestion();
-    setSuggestion(newSuggestion);
-    await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_SUGGESTION, JSON.stringify(newSuggestion));
+  const openSettings = () => {
+    setCurrentScreen('settings');
   };
+
+  const closeSettings = () => {
+    setCurrentScreen('home');
+  };
+
+  if (currentScreen === 'settings') {
+    return <SettingsScreen onBack={closeSettings} />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <MindfulContainer fadeIn slideIn delay={0}>
-          <Text style={styles.greeting}>Today's me time</Text>
+          <View style={styles.header}>
+            <Text style={styles.greeting}>Today's me time</Text>
+            <TouchableOpacity style={styles.settingsButton} onPress={openSettings}>
+              <Text style={styles.settingsButtonText}>⚙️</Text>
+            </TouchableOpacity>
+          </View>
         </MindfulContainer>
         
         <MindfulContainer fadeIn slideIn delay={200} style={styles.suggestionSection}>
@@ -78,42 +114,41 @@ export default function App() {
               message="Finding something gentle for you..." 
               variant="breathing"
             />
+          ) : skipLoading ? (
+            <StepByStepLoader 
+              stage={loadingStage}
+              message="Creating your perfect me-time moment..."
+              showSteps={true}
+            />
           ) : (
-            <SuggestionCard suggestion={suggestion} onSkip={handleSkip} />
+            <SuggestionCard 
+              suggestion={suggestion} 
+              onSkip={handleSkip} 
+              skipLoading={skipLoading}
+              loadingStage={loadingStage}
+            />
           )}
         </MindfulContainer>
 
-        <MindfulContainer fadeIn slideIn delay={400} style={styles.spotsSection}>
-          <Text style={styles.sectionTitle}>✨ Interesting spots nearby</Text>
-          
-          {!locationPermission ? (
-            <View style={styles.permissionCard}>
-              <Text style={styles.permissionText}>Enable location to discover interesting spots within walking distance</Text>
-            </View>
-          ) : spotsLoading ? (
-            <PeacefulLoader 
-              message="Discovering interesting spots nearby..." 
-              variant="floating"
+        {/* Location suggestions section - Swipeable carousel */}
+        {!loading && suggestion?.locationSuggestions && suggestion.locationSuggestions.length > 0 && (
+          <MindfulContainer fadeIn slideIn delay={300}>
+            <LocationCarousel 
+              locationSuggestions={suggestion.locationSuggestions}
+              suggestion={suggestion}
             />
-          ) : (
-            <View>
-              {interestingSpots.length > 0 ? (
-                <>
-                  <Text style={styles.spotsSubtitle}>{interestingSpots.length} places to spark curiosity nearby</Text>
-                  {interestingSpots.map((spot, index) => (
-                    <LocationSuggestionCard 
-                      key={`interesting_${index}`} 
-                      suggestion={spot} 
-                      style={styles.spotCard}
-                    />
-                  ))}
-                </>
-              ) : (
-                <Text style={styles.noSpotsText}>No interesting spots found nearby. Try walking to a different area!</Text>
-              )}
-            </View>
-          )}
-        </MindfulContainer>
+          </MindfulContainer>
+        )}
+
+        {/* Debug component for development */}
+        {__DEV__ && (
+          <LocationVarietyDebug 
+            currentSuggestion={suggestion}
+            previousSuggestion={previousSuggestion}
+            visible={true}
+          />
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -125,26 +160,41 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 60,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.spacious,
+    paddingBottom: ROUNDED_DESIGN.spacing.expansive + 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: ROUNDED_DESIGN.spacing.spacious,
+    marginBottom: ROUNDED_DESIGN.spacing.generous,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.gentle,
   },
   greeting: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 30,
+    fontWeight: '500',
     color: colors.text,
-    letterSpacing: -0.5,
-    marginTop: 24,
-    marginBottom: 32,
+    letterSpacing: -0.3,
+    flex: 1,
     textAlign: 'center',
   },
-  suggestionSection: {
-    marginBottom: 32,
+  settingsButton: {
+    padding: ROUNDED_DESIGN.spacing.comfortable,
+    borderRadius: ROUNDED_DESIGN.radius.soft,
+    backgroundColor: colors.tertiary,
+    ...ROUNDED_DESIGN.shadows.gentle,
   },
-  spotsSection: {
-    marginBottom: 20,
+  settingsButtonText: {
+    fontSize: 20,
+  },
+  suggestionSection: {
+    marginBottom: ROUNDED_DESIGN.spacing.generous,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontWeight: '500',
+    letterSpacing: -0.2,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 16,
@@ -158,26 +208,5 @@ const styles = StyleSheet.create({
   },
   spotCard: {
     marginBottom: 16,
-  },
-  permissionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  permissionText: {
-    fontSize: 16,
-    color: colors.text,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  noSpotsText: {
-    fontSize: 16,
-    color: colors.lightText,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 20,
   },
 });

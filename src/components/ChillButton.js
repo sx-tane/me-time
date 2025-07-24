@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
-import { COLORS } from '../constants/colors';
+import { COLORS, ROUNDED_DESIGN } from '../constants/colors';
 import { getAnimationConfig } from '../utils/platformDetection';
 
 const ChillButton = ({ 
@@ -110,38 +110,42 @@ const ChillButton = ({
 
   const getVariantStyle = () => {
     const baseStyle = {
-      backgroundColor: disabled ? COLORS.GRAY + '30' : COLORS.WHITE,
-      borderColor: disabled ? COLORS.GRAY + '30' : COLORS.ACCENT,
+      backgroundColor: disabled ? COLORS.mutedText + '30' : COLORS.surface,
+      borderColor: disabled ? COLORS.mutedText + '30' : COLORS.accent,
+      ...ROUNDED_DESIGN.shadows.gentle,
     };
 
     switch (variant) {
       case 'primary':
         return {
           ...baseStyle,
-          backgroundColor: disabled ? COLORS.GRAY + '30' : COLORS.ACCENT,
+          backgroundColor: disabled ? COLORS.mutedText + '30' : COLORS.accent,
           borderWidth: 0,
+          ...ROUNDED_DESIGN.shadows.soft,
         };
       
       case 'secondary':
         return {
           ...baseStyle,
-          backgroundColor: disabled ? COLORS.GRAY + '20' : COLORS.LIGHT_BLUE + '20',
-          borderColor: disabled ? COLORS.GRAY + '30' : COLORS.LIGHT_BLUE,
-          borderWidth: 1,
+          backgroundColor: disabled ? COLORS.mutedText + '20' : COLORS.tertiary,
+          borderColor: disabled ? COLORS.mutedText + '30' : COLORS.secondary,
+          borderWidth: 1.5,
         };
       
       case 'ghost':
         return {
           backgroundColor: 'transparent',
-          borderColor: disabled ? COLORS.GRAY + '30' : COLORS.ACCENT + '50',
-          borderWidth: 1,
+          borderColor: disabled ? COLORS.mutedText + '30' : COLORS.accent + '60',
+          borderWidth: 1.5,
+          ...ROUNDED_DESIGN.shadows.gentle,
         };
       
       case 'zen':
         return {
-          backgroundColor: disabled ? COLORS.GRAY + '20' : 'transparent',
+          backgroundColor: disabled ? COLORS.mutedText + '20' : COLORS.tertiary + '80',
           borderColor: 'transparent',
           borderWidth: 0,
+          ...ROUNDED_DESIGN.shadows.gentle,
         };
       
       default:
@@ -153,23 +157,23 @@ const ChillButton = ({
     switch (size) {
       case 'small':
         return {
-          paddingVertical: 8,
-          paddingHorizontal: 16,
-          borderRadius: 12,
+          paddingVertical: ROUNDED_DESIGN.spacing.gentle,
+          paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
+          borderRadius: ROUNDED_DESIGN.radius.gentle,
         };
       
       case 'large':
         return {
-          paddingVertical: 18,
-          paddingHorizontal: 32,
-          borderRadius: 20,
+          paddingVertical: ROUNDED_DESIGN.spacing.comfortable + 4,
+          paddingHorizontal: ROUNDED_DESIGN.spacing.generous,
+          borderRadius: ROUNDED_DESIGN.radius.soft,
         };
       
       default: // medium
         return {
-          paddingVertical: 14,
-          paddingHorizontal: 24,
-          borderRadius: 16,
+          paddingVertical: ROUNDED_DESIGN.spacing.comfortable,
+          paddingHorizontal: ROUNDED_DESIGN.spacing.spacious,
+          borderRadius: ROUNDED_DESIGN.radius.gentle,
         };
     }
   };
@@ -177,39 +181,44 @@ const ChillButton = ({
   const getTextStyle = () => {
     const baseTextStyle = {
       fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
-      fontWeight: '600',
+      fontWeight: '500',
+      letterSpacing: 0.1,
     };
 
     switch (variant) {
       case 'primary':
         return {
           ...baseTextStyle,
-          color: disabled ? COLORS.GRAY : COLORS.WHITE,
+          color: disabled ? COLORS.mutedText : COLORS.WHITE,
+          fontWeight: '500',
         };
       
       case 'secondary':
         return {
           ...baseTextStyle,
-          color: disabled ? COLORS.GRAY : COLORS.DARK_BLUE,
+          color: disabled ? COLORS.mutedText : COLORS.primary,
+          fontWeight: '400',
         };
       
       case 'ghost':
         return {
           ...baseTextStyle,
-          color: disabled ? COLORS.GRAY : COLORS.ACCENT,
+          color: disabled ? COLORS.mutedText : COLORS.accent,
+          fontWeight: '400',
         };
       
       case 'zen':
         return {
           ...baseTextStyle,
-          color: disabled ? COLORS.GRAY : COLORS.DARK_BLUE,
-          fontWeight: '400',
+          color: disabled ? COLORS.mutedText : COLORS.primary,
+          fontWeight: '300',
+          letterSpacing: 0.3,
         };
       
       default:
         return {
           ...baseTextStyle,
-          color: disabled ? COLORS.GRAY : COLORS.DARK_BLUE,
+          color: disabled ? COLORS.mutedText : COLORS.primary,
         };
     }
   };
@@ -277,8 +286,6 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 3,
   },
   ripple: {
     position: 'absolute',

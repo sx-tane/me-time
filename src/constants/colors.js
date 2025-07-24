@@ -1,70 +1,125 @@
 export const COLORS = {
-  // Minimalist 3-color Japanese Zen palette
-  background: '#F7F5F3',        // Primary: Warm off-white (washi paper)
-  primary: '#3C3C3C',           // Secondary: Deep charcoal (sumi ink)
-  secondary: '#8A8A8A',         // Tertiary: Soft gray (stone)
-  tertiary: '#F7F5F3',          // Background repeated for consistency
+  // Japanese WA (和) Harmony 🌸 - Soft, rounded, natural aesthetic
+  background: '#FDF7F0',        // Warm cream (washi paper)
+  surface: '#FFFFFF',           // Pure white (snow on tatami)
+  primary: '#4A5D4F',           // Forest green (pine needles)
+  accent: '#E8B4A0',            // Soft coral (cherry blossom)
+  secondary: '#C4A484',         // Warm taupe (bamboo)
+  tertiary: '#F4F0E8',          // Whisper beige (morning mist)
   
-  // Text colors (using the 3-color palette)
-  text: '#3C3C3C',              // Deep charcoal for main text
-  lightText: '#8A8A8A',         // Soft gray for secondary text
-  mutedText: '#8A8A8A',         // Consistent gray
+  // Text colors inspired by traditional Japanese ink
+  text: '#3C4142',              // Charcoal (sumi ink)
+  lightText: '#8B8680',         // Soft gray (river stone)
+  mutedText: '#A4A19C',         // Light ash (morning fog)
   
-  // Surface colors (monotone variations)
-  card: '#FEFEFE',              // Pure white cards for contrast
-  surface: '#F7F5F3',           // Same as background
-  divider: '#E8E8E8',           // Very subtle divider
+  // Surface colors (nature-inspired harmony)
+  card: '#FFFFFF',              // Pure white (clean tatami)
+  border: '#F0EAE2',            // Soft pearl (gentle boundaries)
+  divider: '#F0EAE2',           // Gentle separation
   
-  // Accent colors (minimal, using existing palette)
-  accent: '#8A8A8A',            // Soft gray accent
-  accentSecondary: '#3C3C3C',   // Charcoal accent
-  accentSoft: '#F7F5F3',        // Background tone
+  // Accent colors (natural harmony)
+  accentSecondary: '#7A8A7D',   // Sage green accent
+  accentSoft: '#F9F3EB',        // Soft cream tone
+  highlight: '#D4B896',         // Golden honey (warm light)
   
-  // Japanese-inspired colors (minimal, zen approach)
-  matcha: '#8A8A8A',            // Matcha represented in gray scale
-  sakura: '#F7F5F3',            // Sakura as background tone
-  bamboo: '#8A8A8A',            // Bamboo as soft gray
-  stone: '#8A8A8A',             // Stone gray (main tertiary)
-  mist: '#F7F5F3',              // Morning mist as background
-  cedar: '#3C3C3C',             // Cedar as deep charcoal
+  // Japanese-inspired nature colors
+  deepForest: '#4A5D4F',        // Deep forest green
+  cherryBloom: '#E8B4A0',       // Soft cherry blossom
+  moonlight: '#FFFFFF',         // Pure moonlight
+  earthen: '#C4A484',           // Natural earth
+  sunrise: '#D4B896',           // Golden morning
+  mist: '#F9F3EB',              // Gentle mist
   
-  // Semantic colors (minimalist zen approach)
-  success: '#8A8A8A',           // Success in soft gray
-  warning: '#3C3C3C',           // Warning in dark charcoal for visibility
-  error: '#3C3C3C',             // Error in dark charcoal
-  info: '#8A8A8A',              // Info in soft gray
+  // Semantic colors (nature-themed)
+  success: '#7A9B7E',           // Soft sage for positive actions
+  warning: '#D4B896',           // Warm honey for caution
+  error: '#B4847C',             // Muted rose for notices
+  info: '#8B8680',              // Soft stone for information
   
   // Utility colors
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   TRANSPARENT: 'transparent',
   
-  // Legacy support (gradually transition away from these)
-  GRAY: '#8A8A8A',
-  LIGHT_BLUE: '#F7F5F3',
-  DARK_BLUE: '#3C3C3C',
-  BLUE: '#8A8A8A'
+  // Legacy support (mapped to new WA palette)
+  GRAY: '#8B8680',              // River stone gray
+  LIGHT_BLUE: '#E8B4A0',        // Cherry blossom
+  DARK_BLUE: '#4A5D4F',         // Forest green
+  BLUE: '#E8B4A0'               // Cherry blossom
 };
 
-// Color combinations for different UI states (3-color zen approach)
+// Japanese WA (和) themed combinations for harmony
 export const ZEN_THEMES = {
   peaceful: {
-    background: COLORS.background,  // Warm off-white
-    text: COLORS.text,              // Deep charcoal
-    accent: COLORS.secondary,       // Soft gray
-    card: COLORS.card               // Pure white
+    background: COLORS.background,  // Warm cream
+    text: COLORS.text,              // Charcoal ink
+    accent: COLORS.accent,          // Cherry blossom
+    card: COLORS.surface            // Pure white
   },
   contemplative: {
-    background: COLORS.background,  // Warm off-white
-    text: COLORS.text,              // Deep charcoal
-    accent: COLORS.secondary,       // Soft gray
-    card: COLORS.card               // Pure white
+    background: COLORS.surface,     // Pure white
+    text: COLORS.primary,           // Forest green
+    accent: COLORS.highlight,       // Golden honey
+    card: COLORS.background         // Warm cream
   },
   serene: {
-    background: COLORS.background,  // Warm off-white
-    text: COLORS.text,              // Deep charcoal
-    accent: COLORS.secondary,       // Soft gray
-    card: COLORS.card               // Pure white
+    background: COLORS.background,  // Warm cream
+    text: COLORS.text,              // Charcoal ink
+    accent: COLORS.accent,          // Cherry blossom
+    card: COLORS.surface            // Pure white
+  },
+  garden: {
+    background: COLORS.primary,     // Forest depths
+    text: COLORS.surface,           // Pure white
+    accent: COLORS.accent,          // Cherry blossom
+    card: COLORS.background         // Cream cards
+  }
+};
+
+// Rounded design tokens for WA aesthetic
+export const ROUNDED_DESIGN = {
+  // Border radius values for organic, soft shapes
+  radius: {
+    minimal: 8,      // Subtle rounding
+    gentle: 16,      // Standard buttons/cards
+    soft: 24,        // Modal corners
+    flowing: 32,     // Large components
+    organic: 40,     // Pills and floating elements
+  },
+  
+  // Shadow values for depth and softness
+  shadows: {
+    gentle: {
+      shadowColor: COLORS.text,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    soft: {
+      shadowColor: COLORS.text,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    floating: {
+      shadowColor: COLORS.text,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+  },
+  
+  // Spacing for harmonious layout
+  spacing: {
+    minimal: 4,
+    gentle: 8,
+    comfortable: 16,
+    spacious: 24,
+    generous: 32,
+    expansive: 48,
   }
 };
 

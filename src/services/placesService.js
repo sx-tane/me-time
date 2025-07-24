@@ -3,6 +3,8 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import config from '../config/environment';
 import { isWeb } from '../utils/platformDetection';
+import apiRateLimiter from '../utils/apiRateLimiter';
+import apiMonitoringService from './apiMonitoringService';
 
 const GOOGLE_PLACES_API_KEY = config.GOOGLE_PLACES_API_KEY;
 const GOOGLE_MAPS_API_KEY = config.GOOGLE_MAPS_API_KEY;
@@ -15,6 +17,9 @@ class PlacesService {
   constructor() {
     this.cache = new Map();
     this.pendingRequests = new Map();
+    
+    // Set rate limits for Google Places API (100 requests per minute)
+    apiRateLimiter.setLimit('places', 100, 60000);
   }
 
   async getUserLocation() {
@@ -41,14 +46,22 @@ class PlacesService {
       longitude,
       radius = 5000,
       types = ['restaurant', 'tourist_attraction', 'park', 'museum', 'cafe', 'shopping_mall'],
-      maxResults = 10
+      maxResults = 10,
+      bypassCache = false // New option to skip caching for task-specific searches
     } = options;
 
     const cacheKey = `nearby_${latitude}_${longitude}_${radius}_${types.join(',')}_${maxResults}`;
     
-    const cachedResult = await this.getCachedResult(cacheKey);
-    if (cachedResult) {
-      return cachedResult;
+    // Skip cache check if bypassCache is true (for dynamic task-specific suggestions)
+    if (!bypassCache) {
+      const cachedResult = await this.getCachedResult(cacheKey);
+      if (cachedResult) {
+        console.log('📦 Using cached places result');
+        await apiMonitoringService.trackPlacesUsage(true); // Cached request
+        return cachedResult;
+      }
+    } else {
+      console.log('🚫 BYPASSING CACHE - Fetching fresh location suggestions for new task type');
     }
 
     if (this.pendingRequests.has(cacheKey)) {
@@ -60,7 +73,13 @@ class PlacesService {
 
     try {
       const result = await requestPromise;
-      await this.setCachedResult(cacheKey, result);
+      
+      // Only cache result if not bypassing cache
+      if (!bypassCache) {
+        await this.setCachedResult(cacheKey, result);
+      }
+      
+      await apiMonitoringService.trackPlacesUsage(false); // New API request
       return result;
     } finally {
       this.pendingRequests.delete(cacheKey);
@@ -100,7 +119,10 @@ class PlacesService {
       throw new Error('Google Places API key not configured');
     }
     
-    const fieldMask = 'places.displayName,places.formattedAddress,places.rating,places.location,places.types';
+    // Check rate limit before making API call
+    await apiRateLimiter.checkLimit('places');
+    
+    const fieldMask = 'places.displayName,places.formattedAddress,places.rating,places.location,places.types,places.photos,places.internationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.regularOpeningHours';
 
     // Comprehensive mapping for Google Places API v1 types
     const typeMapping = {
@@ -129,7 +151,15 @@ class PlacesService {
       'school': 'school',
       'university': 'university',
       'trail': 'park',  // Map trail to park since Google Places API doesn't support 'trail'
-      'walking_path': 'park'  // Also map walking_path to park for consistency
+      'walking_path': 'park',  // Also map walking_path to park for consistency
+      'landmark': 'tourist_attraction',  // Map landmark to tourist_attraction
+      'flower_shop': 'store',  // Map flower_shop to store
+      'bakery': 'bakery',
+      'sports_complex': 'gym',
+      'point_of_interest': 'tourist_attraction',
+      'establishment': 'establishment',
+      'craft_store': 'store',  // Map craft_store to store
+      'studio': 'gym'  // Map studio to gym (closest available type)
     };
 
     // Convert requested types to valid Google Places API types
@@ -144,7 +174,7 @@ class PlacesService {
 
     const requestBody = {
       includedTypes: validTypes,
-      maxResultCount: Math.min(maxResults, 20),
+      maxResultCount: Math.min(maxResults, 50), // Increased for pagination
       locationRestriction: {
         circle: {
           center: {
@@ -201,7 +231,7 @@ class PlacesService {
     if (formattedResults.length === 0 && validTypes.length > 0) {
       console.log('🔄 No results found, trying broader search...');
       const broadRequestBody = {
-        maxResultCount: Math.min(maxResults, 10),
+        maxResultCount: Math.min(maxResults, 25), // Increased for pagination
         locationRestriction: requestBody.locationRestriction,
         languageCode: 'en'
       };
@@ -313,7 +343,8 @@ class PlacesService {
         const ttl = CACHE_TTL_HOURS * 60 * 60 * 1000;
         
         if (now - timestamp < ttl) {
-          return data;
+          // Decompress cached data before returning
+          return this._decompressPlacesData(data);
         } else {
           await AsyncStorage.removeItem(`places_cache_${key}`);
         }
@@ -330,7 +361,12 @@ class PlacesService {
         data,
         timestamp: Date.now()
       };
-      await AsyncStorage.setItem(`places_cache_${key}`, JSON.stringify(cacheData));
+      // Compress cache data by removing unnecessary fields for storage
+      const compressedData = this._compressPlacesData(data);
+      await AsyncStorage.setItem(`places_cache_${key}`, JSON.stringify({
+        data: compressedData,
+        timestamp: cacheData.timestamp
+      }));
     } catch (error) {
       console.error('Cache write error:', error);
     }
@@ -473,6 +509,31 @@ class PlacesService {
     return filteredPlaces.slice(0, maxResults);
   }
 
+  _compressPlacesData(places) {
+    // Remove or compress unnecessary data for storage optimization
+    return places.map(place => ({
+      id: place.id,
+      name: place.name,
+      address: place.address,
+      rating: place.rating,
+      location: place.location,
+      types: place.types?.slice(0, 3), // Limit types array
+      photos: place.photos?.slice(0, 1), // Store only first photo for cache
+      phone: place.phone,
+      website: place.website
+    }));
+  }
+
+  _decompressPlacesData(compressedPlaces) {
+    // Restore full place data structure
+    return compressedPlaces.map(place => ({
+      ...place,
+      googleMapsUrl: place.googleMapsUrl || null,
+      openingHours: place.openingHours || [],
+      photos: place.photos || []
+    }));
+  }
+
   async clearCache() {
     try {
       const keys = await AsyncStorage.getAllKeys();
@@ -480,6 +541,7 @@ class PlacesService {
       if (cacheKeys.length > 0) {
         await AsyncStorage.multiRemove(cacheKeys);
       }
+      console.log(`🧹 Cleared ${cacheKeys.length} place cache entries`);
     } catch (error) {
       console.error('Error clearing cache:', error);
     }

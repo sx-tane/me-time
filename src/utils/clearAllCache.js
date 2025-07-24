@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { aiTaskService } from '../services/aiTaskService';
-import { locationService } from '../services/locationService';
-import { placesService } from '../services/placesService';
+import aiTaskService from '../services/aiTaskService';
+import locationService from '../services/locationService';
+import placesService from '../services/placesService';
 import { STORAGE_KEYS } from '../constants/storage';
+import logger from './logger';
 
 export const clearAllCache = async () => {
   try {
-    console.log('Starting cache clear...');
+    logger.debug('Starting cache clear...');
     
     // Clear AsyncStorage data
     const keysToRemove = [
@@ -28,23 +29,23 @@ export const clearAllCache = async () => {
     // Remove all cache keys
     if (cacheKeys.length > 0) {
       await AsyncStorage.multiRemove(cacheKeys);
-      console.log(`Cleared ${cacheKeys.length} cache entries from AsyncStorage`);
+      logger.debug(`Cleared ${cacheKeys.length} cache entries from AsyncStorage`);
     }
     
     // Clear in-memory caches
     aiTaskService.clearCache();
-    console.log('Cleared AI task service cache');
+    logger.debug('Cleared AI task service cache');
     
     await locationService.clearLocationCache();
-    console.log('Cleared location service cache');
+    logger.debug('Cleared location service cache');
     
     await placesService.clearCache();
-    console.log('Cleared places service cache');
+    logger.debug('Cleared places service cache');
     
-    console.log('All caches cleared successfully');
+    logger.debug('All caches cleared successfully');
     return true;
   } catch (error) {
-    console.error('Error clearing cache:', error);
+    logger.error('Error clearing cache:', error);
     throw error;
   }
 };
@@ -68,7 +69,7 @@ export const getCacheStats = async () => {
     
     return stats;
   } catch (error) {
-    console.error('Error getting cache stats:', error);
+    logger.error('Error getting cache stats:', error);
     return null;
   }
 };

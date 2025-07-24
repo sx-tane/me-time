@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from '../constants/storage';
 import placesService from './placesService';
 import locationService from './locationService';
 import aiTaskService from './aiTaskService';
+import locationHistoryService from './locationHistoryService';
 import { contemplate, MINDFUL_DELAYS } from './mindfulTiming';
 
 export const getTodaysSuggestion = async () => {
@@ -43,7 +44,18 @@ export const getTodaysSuggestion = async () => {
     await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_SUGGESTION, JSON.stringify(newSuggestion));
     await AsyncStorage.setItem(STORAGE_KEYS.LAST_SUGGESTION_DATE, today);
     
-    console.log('✅ Today\'s suggestion ready:', newSuggestion.text);
+    console.log('\u2705 Today\'s suggestion ready:', newSuggestion?.text);
+    console.log('🎯 FINAL SUGGESTION DEBUG:', {
+      taskCategory: newSuggestion.type,
+      hasLocationSuggestion: !!newSuggestion.locationSuggestion,
+      hasLocationSuggestions: !!newSuggestion.locationSuggestions,
+      locationsCount: newSuggestion.locationSuggestions?.length || 0,
+      firstPlaceName: newSuggestion.locationSuggestion?.place?.name,
+      firstPlacePhotos: newSuggestion.locationSuggestion?.place?.photos?.length || 0,
+      firstPlaceMapsUrl: !!newSuggestion.locationSuggestion?.place?.googleMapsUrl,
+      suggestionId: newSuggestion.id,
+      locationsBypassCache: 'enabled for task-specific suggestions'
+    });
     return newSuggestion;
   } catch (error) {
     console.error('❌ Error getting suggestion:', error);
@@ -126,10 +138,19 @@ export const getNewAISuggestion = async () => {
   }
 };
 
-// Enhanced skip functionality to ensure different suggestions
+// Enhanced skip functionality to ensure different suggestions and locations
 export const getNewSuggestion = async (currentSuggestion = null) => {
   // Clear AI cache to ensure fresh generation
   aiTaskService.clearCache();
+  
+  // IMPORTANT: Clear location cache so new task gets fresh location suggestions
+  console.log('🧹 Clearing location cache for fresh suggestions matching new task');
+  await placesService.clearCache();
+  
+  console.log('\ud83d\udd04 Generating new suggestion, current:', currentSuggestion?.text);
+  if (currentSuggestion?.locationSuggestions) {
+    console.log('📍 Current locations:', currentSuggestion.locationSuggestions.map(ls => ls.place.name));
+  }
   
   let attempts = 0;
   let newSuggestion;
@@ -139,22 +160,35 @@ export const getNewSuggestion = async (currentSuggestion = null) => {
     newSuggestion = await getNewAISuggestion();
     attempts++;
     
-    // If we get a different suggestion, break
-    if (!currentSuggestion || newSuggestion.text !== currentSuggestion.text) {
+    // Check if suggestion is different from current (text or category)
+    const isDifferentText = !currentSuggestion || newSuggestion?.text !== currentSuggestion?.text;
+    const isDifferentCategory = !currentSuggestion || newSuggestion.type !== currentSuggestion.type;
+    
+    if (isDifferentText || isDifferentCategory) {
+      console.log('✅ Generated different suggestion:', {
+        newText: newSuggestion?.text,
+        newType: newSuggestion.type,
+        currentText: currentSuggestion?.text,
+        currentType: currentSuggestion?.type,
+        attempt: attempts
+      });
       break;
     }
     
+    console.log(`🔄 Attempt ${attempts}: Similar suggestion, trying again...`);
+    
     // Add a small delay between attempts
     if (attempts < 3) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   } while (attempts < 3);
   
+  console.log('\u2728 Final new suggestion ready:', newSuggestion?.text);
   return newSuggestion;
 };
 
 export const enrichSuggestionWithLocation = async (suggestion) => {
-  console.log('🗺 Enriching suggestion with location:', suggestion.text);  
+  console.log('\ud83d\uddfa Enriching suggestion with location:', suggestion?.text);  
   try {
     const isLocationAvailable = await locationService.isLocationAvailable();
     console.log('📍 Location availability:', isLocationAvailable);
@@ -170,52 +204,133 @@ export const enrichSuggestionWithLocation = async (suggestion) => {
       return suggestion;
     }
 
-    // Expand place types to show more diverse, interesting locations
-    // Include both task-specific places AND general interesting spots
+    // Enhanced task-location matching with priority scoring
     const categoryToPlaceTypes = {
-      'mindful': ['park', 'garden', 'spa', 'library', 'museum', 'cafe'],
-      'sensory': ['park', 'botanical_garden', 'flower_shop', 'bakery', 'art_gallery', 'museum'],
-      'movement': ['park', 'trail', 'fitness_center', 'sports_complex', 'tourist_attraction'],
-      'reflection': ['library', 'museum', 'art_gallery', 'book_store', 'park', 'cafe'],
-      'discovery': ['tourist_attraction', 'point_of_interest', 'museum', 'art_gallery', 'shopping_mall'],
-      'rest': ['park', 'cafe', 'library', 'spa', 'garden'],
-      'creative': ['art_gallery', 'museum', 'craft_store', 'studio', 'library'],
-      'nature': ['park', 'botanical_garden', 'garden', 'tourist_attraction'],
-      'social': ['cafe', 'restaurant', 'community_center', 'park', 'shopping_mall']
+      'mindful': {
+        primary: ['spa', 'garden', 'library'], // Most relevant
+        secondary: ['park', 'museum', 'cafe'], // Somewhat relevant
+        fallback: ['church', 'art_gallery'] // General peaceful places
+      },
+      'sensory': {
+        primary: ['botanical_garden', 'flower_shop', 'bakery'],
+        secondary: ['park', 'art_gallery', 'museum'],
+        fallback: ['cafe', 'restaurant']
+      },
+      'movement': {
+        primary: ['fitness_center', 'sports_complex', 'trail'],
+        secondary: ['park', 'tourist_attraction'],
+        fallback: ['shopping_mall']
+      },
+      'reflection': {
+        primary: ['library', 'museum', 'art_gallery'],
+        secondary: ['park', 'book_store', 'cafe'],
+        fallback: ['church', 'garden']
+      },
+      'discovery': {
+        primary: ['tourist_attraction', 'museum', 'art_gallery'],
+        secondary: ['shopping_mall', 'landmark'],
+        fallback: ['park', 'cafe']
+      },
+      'rest': {
+        primary: ['spa', 'garden', 'park'],
+        secondary: ['library', 'cafe'],
+        fallback: ['museum']
+      },
+      'creative': {
+        primary: ['art_gallery', 'craft_store', 'studio'],
+        secondary: ['museum', 'library'],
+        fallback: ['cafe', 'book_store']
+      },
+      'nature': {
+        primary: ['park', 'botanical_garden', 'garden'],
+        secondary: ['tourist_attraction'],
+        fallback: ['spa']
+      },
+      'social': {
+        primary: ['cafe', 'restaurant', 'community_center'],
+        secondary: ['shopping_mall', 'park'],
+        fallback: ['museum', 'art_gallery']
+      },
+      'connection': {
+        primary: ['community_center', 'church', 'cafe'],
+        secondary: ['park', 'library', 'garden'],
+        fallback: ['museum', 'art_gallery']
+      },
+      'learning': {
+        primary: ['library', 'museum', 'school'],
+        secondary: ['art_gallery', 'book_store', 'tourist_attraction'],
+        fallback: ['cafe', 'community_center']
+      },
+      'play': {
+        primary: ['park', 'game_store', 'arcade'],
+        secondary: ['shopping_mall', 'tourist_attraction', 'beach'],
+        fallback: ['cafe', 'community_center']
+      },
+      'service': {
+        primary: ['community_center', 'church', 'park'],
+        secondary: ['library', 'school', 'hospital'],
+        fallback: ['cafe', 'shopping_mall']
+      },
+      'gratitude': {
+        primary: ['church', 'garden', 'park'],
+        secondary: ['museum', 'art_gallery', 'library'],
+        fallback: ['cafe', 'tourist_attraction']
+      }
     };
 
-    // Get task-specific places
-    const taskSpecificTypes = categoryToPlaceTypes[suggestion.type] || ['park', 'cafe', 'museum'];
+    // Get task-specific places with priority levels
+    const taskPlaceTypes = categoryToPlaceTypes[suggestion.type] || {
+      primary: ['park', 'cafe'],
+      secondary: ['museum', 'library'],
+      fallback: ['restaurant']
+    };
     
-    // Add general interesting places for variety
-    const generalInterestingTypes = [
-      'tourist_attraction', 'museum', 'art_gallery', 'park', 'cafe', 
-      'restaurant', 'shopping_mall', 'library', 'church', 'landmark'
+    // Combine all place types for search
+    const allPlaceTypes = [
+      ...taskPlaceTypes.primary,
+      ...taskPlaceTypes.secondary,
+      ...taskPlaceTypes.fallback
     ];
     
-    // Combine both sets for maximum variety
-    const allPlaceTypes = [...new Set([...taskSpecificTypes, ...generalInterestingTypes])];
+    // Add some general variety (but less dominant)
+    const varietyTypes = ['tourist_attraction', 'landmark'];
+    const searchTypes = [...new Set([...allPlaceTypes, ...varietyTypes])];
     
-    // Search with expanded radius for more options
-    console.log('🔍 Searching for diverse places:', allPlaceTypes.slice(0, 8)); // Log first 8 for readability
-    const nearbyPlaces = await placesService.getNearbyInterestingPlaces({
-      latitude: userLocation.latitude,
-      longitude: userLocation.longitude,
-      radius: 1500, // Expanded to 1.5km for more interesting options
-      types: allPlaceTypes,
-      maxResults: 10 // Get more options to choose from
-    });
+    // Progressive search with expanding radius for variety
+    console.log('🔍 Searching for task-relevant places:', searchTypes.slice(0, 8));
+    console.log('🎯 Task type:', suggestion.type);
+    
+    let nearbyPlaces = [];
+    const searchRadii = [1000, 1500, 2500]; // Progressive expansion
+    
+    for (const radius of searchRadii) {
+      const places = await placesService.getNearbyInterestingPlaces({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        radius: radius,
+        types: searchTypes,
+        maxResults: 50, // Increased to get more places for pagination
+        bypassCache: true
+      });
+      
+      if (places && places.length > 0) {
+        nearbyPlaces = places;
+        console.log(`📍 Found ${places.length} places within ${radius}m`);
+        break;
+      }
+    }
     console.log('🏢 Found nearby places:', nearbyPlaces?.length || 0);
 
     if (!nearbyPlaces || nearbyPlaces.length === 0) {
-      // If no specific places found, try with broader search
+      // If no specific places found, try with broader search (also bypass cache)
       console.log('🔄 No specific places found, trying broader search...');
       const broadPlaces = await placesService.getNearbyInterestingPlaces({
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
         radius: 2000, // Even broader search
         types: ['establishment', 'point_of_interest'],
-        maxResults: 5
+        maxResults: 5,
+        bypassCache: true // Also bypass cache for broader search
       });
       
       if (!broadPlaces || broadPlaces.length === 0) {
@@ -225,56 +340,130 @@ export const enrichSuggestionWithLocation = async (suggestion) => {
       nearbyPlaces.push(...broadPlaces);
     }
 
-    // Prioritize interesting places over generic ones
-    const prioritizedPlaces = nearbyPlaces.sort((a, b) => {
-      const interestingTypes = ['tourist_attraction', 'museum', 'art_gallery', 'landmark'];
-      const aIsInteresting = a.types?.some(type => interestingTypes.includes(type));
-      const bIsInteresting = b.types?.some(type => interestingTypes.includes(type));
+    // Enhanced scoring system: task relevance + quality + novelty
+    const getLocationScore = (place) => {
+      let score = 0;
+      const placeTypes = place.types || [];
       
-      if (aIsInteresting && !bIsInteresting) return -1;
-      if (!aIsInteresting && bIsInteresting) return 1;
+      // Task relevance scoring (40% of total score)
+      const primaryMatch = placeTypes.some(type => taskPlaceTypes.primary.includes(type));
+      const secondaryMatch = placeTypes.some(type => taskPlaceTypes.secondary.includes(type));
+      const fallbackMatch = placeTypes.some(type => taskPlaceTypes.fallback.includes(type));
       
-      // If both are interesting or both are not, sort by rating then distance
-      if (a.rating && b.rating) {
-        return b.rating - a.rating; // Higher rating first
+      if (primaryMatch) score += 40;
+      else if (secondaryMatch) score += 25;
+      else if (fallbackMatch) score += 15;
+      
+      // Quality scoring (30% of total score)
+      if (place.rating) {
+        score += (place.rating / 5.0) * 30;
       }
-      return 0; // Keep original order (distance-based)
+      
+      // Novelty bonus (20% of total score) - avoid recently shown places
+      if (!locationHistoryService.isRecentlyShown(place.id)) {
+        score += 20;
+      }
+      
+      // Interesting place bonus (10% of total score)
+      const interestingTypes = ['tourist_attraction', 'museum', 'art_gallery', 'landmark'];
+      if (placeTypes.some(type => interestingTypes.includes(type))) {
+        score += 10;
+      }
+      
+      console.log(`📊 ${place.name}: ${score.toFixed(1)} (task:${primaryMatch?'P':secondaryMatch?'S':fallbackMatch?'F':'N'}, rating:${place.rating||'N/A'}, recent:${locationHistoryService.isRecentlyShown(place.id)?'Y':'N'})`);
+      return score;
+    };
+    
+    const prioritizedPlaces = nearbyPlaces
+      .map(place => ({ ...place, score: getLocationScore(place) }))
+      .sort((a, b) => b.score - a.score);
+
+    // Diversify selection: pick best places from different types/areas
+    const topPlaces = [];
+    const usedTypes = new Set();
+    const minDistance = 200; // Minimum distance between selected places (meters)
+    
+    for (const place of prioritizedPlaces) {
+      if (topPlaces.length >= 25) break; // Increased limit for pagination
+      
+      // Check type diversity
+      const placeMainType = place.types?.[0] || 'unknown';
+      const typeCount = Array.from(usedTypes).filter(type => type === placeMainType).length;
+      
+      // Check geographic diversity
+      const tooCloseToExisting = topPlaces.some(selected => {
+        if (!place.location || !selected.location) return false;
+        const distance = locationService.calculateDistance(
+          place.location.lat, place.location.lng,
+          selected.location.lat, selected.location.lng
+        );
+        return distance < minDistance;
+      });
+      
+      // Select if diverse enough or if we need more options  
+      // Relaxed diversity requirements to get more places for pagination
+      if ((typeCount < 4 && !tooCloseToExisting) || topPlaces.length < 15) {
+        topPlaces.push(place);
+        usedTypes.add(placeMainType);
+        
+        // Track this location to avoid showing it again soon
+        locationHistoryService.addLocationId(place.id);
+      }
+    }
+    
+    console.log('🎯 ENHANCED LOCATION SELECTION:', {
+      taskType: suggestion.type,
+      totalFound: nearbyPlaces?.length || 0,
+      prioritizedCount: prioritizedPlaces.length,
+      finalSelected: topPlaces.length,
+      selectedPlaces: topPlaces.map(p => `${p.name} (${p.score?.toFixed(1)} pts)`)
     });
 
-    // Pick the best place (prioritized by interest and rating)
-    const nearbyPlace = prioritizedPlaces[0];
-
-    // Create more contextual relevance text
-    const getRelevanceText = (place, task) => {
+    // Create simple place type description (no task info to avoid confusion)
+    const getPlaceTypeDescription = (place) => {
       const placeTypes = place.types || [];
       
       if (placeTypes.includes('tourist_attraction') || placeTypes.includes('landmark')) {
-        return `Interesting spot for: ${task.text}`;
+        return 'Tourist attraction';
       } else if (placeTypes.includes('museum') || placeTypes.includes('art_gallery')) {
-        return `Cultural venue for: ${task.text}`;
+        return 'Cultural venue';
       } else if (placeTypes.includes('park') || placeTypes.includes('garden')) {
-        return `Peaceful location for: ${task.text}`;
+        return 'Peaceful location';
       } else if (placeTypes.includes('cafe') || placeTypes.includes('restaurant')) {
-        return `Cozy spot for: ${task.text}`;
+        return 'Food & drinks';
       } else {
-        return `Perfect for: ${task.text}`;
+        return 'Nearby place';
       }
     };
 
-    return {
+    // Create location suggestions for all top places
+    const locationSuggestions = topPlaces.map(place => ({
+      place: place,
+      userLocation: userLocation,
+      distance: locationService.calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        place.location?.lat || 0,
+        place.location?.lng || 0
+      ),
+      relevance: getPlaceTypeDescription(place)
+    }));
+
+    const result = {
       ...suggestion,
-      locationSuggestion: {
-        place: nearbyPlace,
-        userLocation: userLocation,
-        distance: locationService.calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          nearbyPlace.location?.lat || 0,
-          nearbyPlace.location?.lng || 0
-        ),
-        relevance: getRelevanceText(nearbyPlace, suggestion)
-      }
+      locationSuggestion: locationSuggestions[0], // Keep first for backward compatibility
+      locationSuggestions: locationSuggestions // New array of multiple locations
     };
+
+    console.log('✅ FINAL LOCATION RESULT:', {
+      taskTitle: suggestion?.text,
+      locationSuggestionsCount: locationSuggestions.length,
+      locationNames: locationSuggestions.map(ls => ls.place.name),
+      hasSingleLocationSuggestion: !!result.locationSuggestion,
+      hasMultipleLocationSuggestions: !!result.locationSuggestions && result.locationSuggestions.length > 0
+    });
+
+    return result;
   } catch (error) {
     console.error('❌ Error enriching suggestion with location:', error);
     console.log('🔄 Returning original suggestion');

@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   SEEN_SUGGESTIONS: '@me_time_seen_suggestions',
   ONBOARDING_COMPLETE: '@me_time_onboarding',
   NOTIFICATION_TIME: '@me_time_notification_time',
+  NOTIFICATION_TIMES: '@me_time_notification_times',
   NOTIFICATIONS_ENABLED: '@me_time_notifications_enabled',
   LAST_LOCATION: '@me_time_last_location',
   LOCATION_PLACES: '@me_time_location_places'
