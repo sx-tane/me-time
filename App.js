@@ -193,8 +193,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: '500',
-    letterSpacing: -0.2,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 16,

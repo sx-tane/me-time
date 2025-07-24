@@ -9,6 +9,7 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
   const distance = locationSuggestion.distance || suggestion.distance;
   
   if (!place) {
+    console.error('LocationSuggestionCard: place is undefined!', { suggestion, locationSuggestion });
     return null;
   }
 

@@ -281,22 +281,39 @@ class PlacesService {
   }
 
   _formatNewAPIResults(places) {
-    return places.map((place, index) => ({
-      id: place.id || `place_${Date.now()}_${index}`,
-      name: place.displayName?.text || 'Unknown Place',
-      address: place.formattedAddress || '',
-      phone: place.internationalPhoneNumber || null,
-      website: place.websiteUri || null,
-      rating: place.rating || null,
-      googleMapsUrl: place.googleMapsUri || null,
-      openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
-      location: place.location ? {
-        lat: place.location.latitude,
-        lng: place.location.longitude
-      } : null,
-      types: place.types || [],
-      photos: this._formatPhotosFromNewAPI(place.photos || [])
-    }));
+    return places.map((place, index) => {
+      if (!place) {
+        return {
+          id: `place_${Date.now()}_${index}`,
+          name: 'Unknown Place',
+          address: '',
+          phone: null,
+          website: null,
+          rating: null,
+          googleMapsUrl: null,
+          openingHours: [],
+          location: null,
+          types: [],
+          photos: []
+        };
+      }
+      return {
+        id: place.id || `place_${Date.now()}_${index}`,
+        name: place.displayName?.text || 'Unknown Place',
+        address: place.formattedAddress || '',
+        phone: place.internationalPhoneNumber || null,
+        website: place.websiteUri || null,
+        rating: place.rating || null,
+        googleMapsUrl: place.googleMapsUri || null,
+        openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
+        location: place.location ? {
+          lat: place.location.latitude,
+          lng: place.location.longitude
+        } : null,
+        types: place.types || [],
+        photos: this._formatPhotosFromNewAPI(place.photos || [])
+      };
+    });
   }
 
   _formatLegacyAPIResults(places) {

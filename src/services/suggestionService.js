@@ -188,6 +188,10 @@ export const getNewSuggestion = async (currentSuggestion = null) => {
 };
 
 export const enrichSuggestionWithLocation = async (suggestion) => {
+  if (!suggestion) {
+    console.error('enrichSuggestionWithLocation: suggestion is undefined!');
+    return null;
+  }
   console.log('\ud83d\uddfa Enriching suggestion with location:', suggestion?.text);  
   try {
     const isLocationAvailable = await locationService.isLocationAvailable();
