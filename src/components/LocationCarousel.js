@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, ScrollView, Dimensions, StyleSheet, Text } from 'react-native';
 import LocationSuggestionCard from './LocationSuggestionCard';
-import { colors } from '../constants/colors';
+import colors from '../constants/colors';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_MARGIN = 24;
