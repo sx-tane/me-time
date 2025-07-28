@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, ScrollView, Dimensions, StyleSheet, Text } from 'react-native';
 import LocationSuggestionCard from './LocationSuggestionCard';
-import colors from '../constants/colors';
+import colors, { ROUNDED_DESIGN } from '../constants/colors';
 
 const { width: screenWidth } = Dimensions.get('window');
-const CARD_MARGIN = 24;
+const CARD_MARGIN = ROUNDED_DESIGN.spacing.spacious;
 const CARDS_PER_PAGE = 5;
 
 const LocationCarousel = ({ locationSuggestions, suggestion, style }) => {
@@ -46,7 +46,7 @@ const LocationCarousel = ({ locationSuggestions, suggestion, style }) => {
     <View style={[styles.container, style]}>
       <View style={styles.header}>
         <Text style={styles.title}>
-          🌍 Nearby Peaceful Spots ({locationSuggestions.length})
+          Nearby Peaceful Spots • {locationSuggestions.length} locations
         </Text>
         <Text style={styles.subtitle}>
           Perfect places within walking distance for your activity
@@ -106,34 +106,34 @@ const LocationCarousel = ({ locationSuggestions, suggestion, style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 32,
+    marginBottom: ROUNDED_DESIGN.spacing.generous,
   },
   header: {
     paddingHorizontal: CARD_MARGIN,
-    marginBottom: 20,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: ROUNDED_DESIGN.typography.large,
+    fontWeight: '400',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: ROUNDED_DESIGN.spacing.gentle,
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: ROUNDED_DESIGN.typography.body,
     color: colors.lightText,
-    marginBottom: 12,
-    fontStyle: 'italic',
+    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
+    fontWeight: '300',
   },
   pageIndicator: {
-    fontSize: 12,
-    color: colors.accent,
-    fontWeight: '500',
+    fontSize: ROUNDED_DESIGN.typography.small,
+    color: colors.text,
+    fontWeight: '400',
     textAlign: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: colors.accent + '15',
-    borderRadius: 16,
+    paddingVertical: ROUNDED_DESIGN.spacing.gentle,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
+    backgroundColor: colors.buttonBg,
+    borderRadius: ROUNDED_DESIGN.radius.full,
     alignSelf: 'center',
   },
   singlePageContainer: {
@@ -147,27 +147,27 @@ const styles = StyleSheet.create({
     paddingRight: CARD_MARGIN,
   },
   locationCard: {
-    marginBottom: 16,
+    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: ROUNDED_DESIGN.spacing.comfortable,
     paddingHorizontal: CARD_MARGIN,
   },
   paginationDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.lightText + '40',
-    marginHorizontal: 4,
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: colors.divider,
+    marginHorizontal: ROUNDED_DESIGN.spacing.minimal,
   },
   paginationDotActive: {
-    backgroundColor: colors.accent,
-    width: 12,
+    backgroundColor: colors.primary,
+    width: 24,
     height: 8,
-    borderRadius: 4,
+    borderRadius: ROUNDED_DESIGN.radius.full,
   },
 });
 

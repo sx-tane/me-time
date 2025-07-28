@@ -1,125 +1,158 @@
 export const COLORS = {
-  // Japanese WA (和) Harmony 🌸 - Soft, rounded, natural aesthetic
-  background: '#FDF7F0',        // Warm cream (washi paper)
-  surface: '#FFFFFF',           // Pure white (snow on tatami)
-  primary: '#4A5D4F',           // Forest green (pine needles)
-  accent: '#E8B4A0',            // Soft coral (cherry blossom)
-  secondary: '#C4A484',         // Warm taupe (bamboo)
-  tertiary: '#F4F0E8',          // Whisper beige (morning mist)
+  // Japanese Zen Wellness 🌸 - Ultra-soft, minimal aesthetic
+  background: '#FAFAF8',        // Pure silk (refined cream)
+  surface: '#FFFFFF',           // Pure white (fresh snow)
+  primary: '#7B8B8E',           // Soft sage (morning mist)
+  accent: '#E5C4B1',            // Muted peach (sakura petals)
+  secondary: '#B5A19A',         // Warm gray (natural stone)
+  tertiary: '#F5F2ED',          // Soft beige (rice paper)
   
-  // Text colors inspired by traditional Japanese ink
-  text: '#3C4142',              // Charcoal (sumi ink)
-  lightText: '#8B8680',         // Soft gray (river stone)
-  mutedText: '#A4A19C',         // Light ash (morning fog)
+  // Text colors - refined and gentle
+  text: '#2D3436',              // Deep charcoal (refined ink)
+  lightText: '#636E72',         // Soft gray (gentle stone)
+  mutedText: '#B2BEC3',         // Light gray (morning fog)
   
-  // Surface colors (nature-inspired harmony)
-  card: '#FFFFFF',              // Pure white (clean tatami)
-  border: '#F0EAE2',            // Soft pearl (gentle boundaries)
-  divider: '#F0EAE2',           // Gentle separation
+  // Surface colors - minimal and clean
+  card: '#FFFFFF',              // Pure white
+  cardHover: '#FAFAF8',         // Subtle hover state
+  border: '#EEE8E3',            // Ultra-soft border
+  divider: '#F5F2ED',           // Barely visible divider
   
-  // Accent colors (natural harmony)
-  accentSecondary: '#7A8A7D',   // Sage green accent
-  accentSoft: '#F9F3EB',        // Soft cream tone
-  highlight: '#D4B896',         // Golden honey (warm light)
+  // Accent colors - muted wellness palette
+  accentSecondary: '#A8B5B9',   // Soft blue-gray
+  accentSoft: '#FAF8F5',        // Whisper cream
+  highlight: '#E5C4B1',         // Soft highlight
   
-  // Japanese-inspired nature colors
-  deepForest: '#4A5D4F',        // Deep forest green
-  cherryBloom: '#E8B4A0',       // Soft cherry blossom
-  moonlight: '#FFFFFF',         // Pure moonlight
-  earthen: '#C4A484',           // Natural earth
-  sunrise: '#D4B896',           // Golden morning
-  mist: '#F9F3EB',              // Gentle mist
+  // Japanese wellness colors
+  sakura: '#F4E4DD',            // Ultra-soft pink
+  matcha: '#D4DDD6',            // Muted green tea
+  lavender: '#E4D9E8',          // Soft purple
+  sky: '#E1E8ED',               // Light blue-gray
+  sand: '#F0E6DB',              // Warm sand
   
-  // Semantic colors (nature-themed)
-  success: '#7A9B7E',           // Soft sage for positive actions
-  warning: '#D4B896',           // Warm honey for caution
-  error: '#B4847C',             // Muted rose for notices
-  info: '#8B8680',              // Soft stone for information
+  // Semantic colors - ultra muted
+  success: '#C3D4C8',           // Very soft green
+  warning: '#F0E6DB',           // Gentle warm
+  error: '#E8D0D0',             // Soft rose
+  info: '#D4DDD6',              // Muted info
+  
+  // Interactive states
+  buttonBg: '#F5F2ED',          // Default button
+  buttonHover: '#EEE8E3',       // Hover state
+  buttonActive: '#E5DDD6',      // Active state
   
   // Utility colors
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   TRANSPARENT: 'transparent',
   
-  // Legacy support (mapped to new WA palette)
-  GRAY: '#8B8680',              // River stone gray
-  LIGHT_BLUE: '#E8B4A0',        // Cherry blossom
-  DARK_BLUE: '#4A5D4F',         // Forest green
-  BLUE: '#E8B4A0'               // Cherry blossom
+  // Legacy support (mapped to new palette)
+  GRAY: '#636E72',              
+  LIGHT_BLUE: '#E5C4B1',        
+  DARK_BLUE: '#7B8B8E',         
+  BLUE: '#E5C4B1'               
 };
 
-// Japanese WA (和) themed combinations for harmony
+// Japanese Zen wellness combinations
 export const ZEN_THEMES = {
   peaceful: {
-    background: COLORS.background,  // Warm cream
-    text: COLORS.text,              // Charcoal ink
-    accent: COLORS.accent,          // Cherry blossom
+    background: COLORS.background,  // Pure silk
+    text: COLORS.text,              // Deep charcoal
+    accent: COLORS.sakura,          // Soft pink
     card: COLORS.surface            // Pure white
   },
   contemplative: {
     background: COLORS.surface,     // Pure white
-    text: COLORS.primary,           // Forest green
-    accent: COLORS.highlight,       // Golden honey
-    card: COLORS.background         // Warm cream
+    text: COLORS.text,              // Deep charcoal
+    accent: COLORS.matcha,          // Soft green
+    card: COLORS.tertiary           // Rice paper
   },
   serene: {
-    background: COLORS.background,  // Warm cream
-    text: COLORS.text,              // Charcoal ink
-    accent: COLORS.accent,          // Cherry blossom
+    background: COLORS.background,  // Pure silk
+    text: COLORS.text,              // Deep charcoal
+    accent: COLORS.lavender,        // Soft purple
     card: COLORS.surface            // Pure white
   },
-  garden: {
-    background: COLORS.primary,     // Forest depths
-    text: COLORS.surface,           // Pure white
-    accent: COLORS.accent,          // Cherry blossom
-    card: COLORS.background         // Cream cards
+  mindful: {
+    background: COLORS.tertiary,    // Rice paper
+    text: COLORS.text,              // Deep charcoal
+    accent: COLORS.sky,             // Light blue
+    card: COLORS.surface            // Pure white
   }
 };
 
-// Rounded design tokens for WA aesthetic
+// Ultra-soft Japanese design tokens
 export const ROUNDED_DESIGN = {
   // Border radius values for organic, soft shapes
   radius: {
-    minimal: 8,      // Subtle rounding
-    gentle: 16,      // Standard buttons/cards
-    soft: 24,        // Modal corners
-    flowing: 32,     // Large components
-    organic: 40,     // Pills and floating elements
+    minimal: 12,     // Subtle rounding
+    gentle: 20,      // Standard buttons/inputs
+    soft: 28,        // Cards and containers
+    flowing: 36,     // Large components
+    organic: 48,     // Pills and floating elements
+    full: 999,       // Perfect circles
   },
   
-  // Shadow values for depth and softness
+  // Shadow values - ultra subtle and soft
   shadows: {
+    minimal: {
+      shadowColor: COLORS.text,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.03,
+      shadowRadius: 4,
+      elevation: 1,
+    },
     gentle: {
       shadowColor: COLORS.text,
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
+      shadowOpacity: 0.04,
+      shadowRadius: 10,
       elevation: 2,
     },
     soft: {
       shadowColor: COLORS.text,
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
-      elevation: 4,
+      shadowOpacity: 0.06,
+      shadowRadius: 20,
+      elevation: 3,
     },
     floating: {
       shadowColor: COLORS.text,
       shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.12,
-      shadowRadius: 20,
+      shadowOpacity: 0.08,
+      shadowRadius: 30,
+      elevation: 5,
+    },
+    hover: {
+      shadowColor: COLORS.text,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.10,
+      shadowRadius: 40,
       elevation: 8,
     },
   },
   
-  // Spacing for harmonious layout
+  // Spacing for zen-like layout
   spacing: {
+    micro: 2,
     minimal: 4,
     gentle: 8,
     comfortable: 16,
     spacious: 24,
     generous: 32,
     expansive: 48,
+    luxurious: 64,
+  },
+  
+  // Typography scale
+  typography: {
+    tiny: 11,
+    small: 13,
+    body: 15,
+    medium: 17,
+    large: 21,
+    xlarge: 28,
+    xxlarge: 36,
   }
 };
 

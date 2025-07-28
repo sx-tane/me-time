@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
-import { COLORS } from '../constants/colors';
+import { COLORS, ROUNDED_DESIGN } from '../constants/colors';
 
 const PeacefulLoader = ({ 
   message = "Taking a gentle moment...", 
@@ -93,17 +93,17 @@ const PeacefulLoader = ({
             <Animated.View style={[
               styles.floatingDot,
               { transform: [{ translateY: animValue1 }] },
-              { backgroundColor: COLORS.ACCENT }
+              { backgroundColor: COLORS.accent }
             ]} />
             <Animated.View style={[
               styles.floatingDot,
               { transform: [{ translateY: animValue2 }] },
-              { backgroundColor: COLORS.LIGHT_BLUE, marginHorizontal: 12 }
+              { backgroundColor: COLORS.primary, marginHorizontal: ROUNDED_DESIGN.spacing.comfortable }
             ]} />
             <Animated.View style={[
               styles.floatingDot,
               { transform: [{ translateY: animValue3 }] },
-              { backgroundColor: COLORS.ACCENT }
+              { backgroundColor: COLORS.accent }
             ]} />
           </View>
         );
@@ -164,28 +164,26 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
+    padding: ROUNDED_DESIGN.spacing.expansive,
   },
   loaderContainer: {
-    marginBottom: 24,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
     alignItems: 'center',
     justifyContent: 'center',
   },
   breathingCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.ACCENT + '20',
+    width: 64,
+    height: 64,
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: COLORS.buttonBg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.ACCENT + '40',
   },
   innerCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: COLORS.ACCENT + '60',
+    width: 32,
+    height: 32,
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: COLORS.accent + '40',
   },
   floatingContainer: {
     flexDirection: 'row',
@@ -195,21 +193,21 @@ const styles = StyleSheet.create({
   floatingDot: {
     width: 12,
     height: 12,
-    borderRadius: 6,
+    borderRadius: ROUNDED_DESIGN.radius.full,
   },
   pulseCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.LIGHT_BLUE + '30',
+    width: 56,
+    height: 56,
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: COLORS.buttonBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pulseInner: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.LIGHT_BLUE,
+    width: 24,
+    height: 24,
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: COLORS.accent,
   },
   rippleContainer: {
     width: 80,
@@ -221,35 +219,35 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: COLORS.ACCENT + '60',
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   rippleRing2: {
     width: 60,
     height: 60,
-    borderRadius: 30,
-    borderColor: COLORS.ACCENT + '40',
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    borderColor: COLORS.divider,
   },
   rippleRing3: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    borderColor: COLORS.ACCENT + '20',
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    borderColor: COLORS.divider,
   },
   message: {
-    fontSize: 16,
-    color: COLORS.GRAY,
+    fontSize: ROUNDED_DESIGN.typography.body,
+    color: COLORS.lightText,
     textAlign: 'center',
-    fontWeight: '400',
+    fontWeight: '300',
     lineHeight: 24,
   },
   dotsContainer: {
-    marginTop: 12,
+    marginTop: ROUNDED_DESIGN.spacing.comfortable,
   },
   dots: {
-    fontSize: 20,
-    color: COLORS.ACCENT + '60',
+    fontSize: ROUNDED_DESIGN.typography.medium,
+    color: COLORS.mutedText,
     letterSpacing: 4,
   },
 });

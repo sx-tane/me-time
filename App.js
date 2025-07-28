@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StatusBar, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 import { SuggestionCard } from './src/components/SuggestionCard';
 import LocationSuggestionCard from './src/components/LocationSuggestionCard';
@@ -103,7 +104,7 @@ export default function App() {
           <View style={styles.header}>
             <Text style={styles.greeting}>Today's me time</Text>
             <TouchableOpacity style={styles.settingsButton} onPress={openSettings}>
-              <Text style={styles.settingsButtonText}>⚙️</Text>
+              <Ionicons name="settings-outline" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
         </MindfulContainer>
@@ -172,37 +173,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: ROUNDED_DESIGN.spacing.gentle,
   },
   greeting: {
-    fontSize: 30,
-    fontWeight: '500',
+    fontSize: ROUNDED_DESIGN.typography.xxlarge,
+    fontWeight: '300',
     color: colors.text,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
     flex: 1,
     textAlign: 'center',
   },
   settingsButton: {
-    padding: ROUNDED_DESIGN.spacing.comfortable,
-    borderRadius: ROUNDED_DESIGN.radius.soft,
-    backgroundColor: colors.tertiary,
-    ...ROUNDED_DESIGN.shadows.gentle,
-  },
-  settingsButtonText: {
-    fontSize: 20,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: colors.buttonBg,
   },
   suggestionSection: {
     marginBottom: ROUNDED_DESIGN.spacing.generous,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: ROUNDED_DESIGN.typography.large,
+    fontWeight: '400',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
     letterSpacing: -0.3,
   },
   spotsSubtitle: {
-    fontSize: 14,
+    fontSize: ROUNDED_DESIGN.typography.body,
     color: colors.lightText,
-    marginBottom: 20,
-    fontStyle: 'italic',
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    fontWeight: '300',
   },
   spotCard: {
     marginBottom: 16,

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MindfulContainer from './MindfulContainer';
 import PeacefulLoader from './PeacefulLoader';
-import colors from '../constants/colors';
+import colors, { ROUNDED_DESIGN } from '../constants/colors';
 
 const StepByStepLoader = ({ 
   stage = null, 
@@ -116,86 +116,78 @@ const StepByStepLoader = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: ROUNDED_DESIGN.spacing.spacious,
   },
   loaderSection: {
-    marginBottom: 32,
+    marginBottom: ROUNDED_DESIGN.spacing.generous,
   },
   stepsContainer: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: ROUNDED_DESIGN.radius.gentle,
+    padding: ROUNDED_DESIGN.spacing.spacious,
+    ...ROUNDED_DESIGN.shadows.gentle,
   },
   stepsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: ROUNDED_DESIGN.typography.medium,
+    fontWeight: '400',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
     textAlign: 'center',
   },
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
     position: 'relative',
   },
   stepIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
+    width: 36,
+    height: 36,
+    borderRadius: ROUNDED_DESIGN.radius.full,
+    backgroundColor: colors.buttonBg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: colors.surface,
+    marginRight: ROUNDED_DESIGN.spacing.comfortable,
   },
   stepIconCompleted: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.success,
   },
   stepIconCurrent: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   stepIconUpcoming: {
-    backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    backgroundColor: colors.buttonBg,
   },
   stepContent: {
     flex: 1,
   },
   stepText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: ROUNDED_DESIGN.typography.body,
+    fontWeight: '400',
     color: colors.lightText,
   },
   stepTextCompleted: {
-    color: colors.primary,
-    opacity: 0.7,
+    color: colors.text,
+    opacity: 0.6,
   },
   stepTextCurrent: {
-    color: colors.primary,
-    fontWeight: '600',
+    color: colors.text,
+    fontWeight: '400',
   },
   stepTextUpcoming: {
-    color: colors.lightText,
+    color: colors.mutedText,
   },
   stepConnector: {
     position: 'absolute',
-    left: 15,
-    top: 32,
+    left: 17,
+    top: 36,
     width: 2,
-    height: 16,
-    backgroundColor: colors.surface,
+    height: ROUNDED_DESIGN.spacing.spacious,
+    backgroundColor: colors.divider,
   },
   stepConnectorActive: {
     backgroundColor: colors.primary,
+    opacity: 0.3,
   },
 });
 

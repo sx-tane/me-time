@@ -17,24 +17,35 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
   const handleOpenMaps = () => {
     if (place.googleMapsUrl) {
       Linking.openURL(place.googleMapsUrl);
-    } else if (place.location) {
+    } else if (place.location && place.name) {
       // Handle both lat/lng and latitude/longitude formats
       const lat = place.location.lat || place.location.latitude;
       const lng = place.location.lng || place.location.longitude;
       if (lat && lng) {
-        const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-        Linking.openURL(url);
+        // Use place name and coordinates for better results
+        const encodedName = encodeURIComponent(place.name);
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodedName}&query_place_id=${place.id || ''}`;
+        // Fallback to coordinates-based search if name-based doesn't work well
+        const coordinatesUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        
+        // Try with place name first for better UX
+        Linking.openURL(url).catch(() => {
+          // If that fails, fall back to coordinates
+          Linking.openURL(coordinatesUrl);
+        });
       }
     }
   };
 
-  const handleCall = () => {
+  const handleCall = (e) => {
+    e.stopPropagation();
     if (place.phone) {
       Linking.openURL(`tel:${place.phone}`);
     }
   };
 
-  const handleWebsite = () => {
+  const handleWebsite = (e) => {
+    e.stopPropagation();
     if (place.website) {
       Linking.openURL(place.website);
     }
@@ -53,7 +64,7 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
+    <TouchableOpacity style={[styles.container, style]} onPress={handleOpenMaps}>
       <View style={styles.header}>
         <Text style={styles.title}>{place.name}</Text>
         {distance !== undefined && (
@@ -86,23 +97,21 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
         />
       )}
 
-      <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionButton} onPress={handleOpenMaps}>
-          <Text style={styles.actionText}>directions</Text>
-        </TouchableOpacity>
-        
-        {place.phone && (
-          <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-            <Text style={styles.actionText}>call</Text>
-          </TouchableOpacity>
-        )}
-        
-        {place.website && (
-          <TouchableOpacity style={styles.actionButton} onPress={handleWebsite}>
-            <Text style={styles.actionText}>website</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      {(place.phone || place.website) && (
+        <View style={styles.actions}>
+          {place.phone && (
+            <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
+              <Text style={styles.actionText}>call</Text>
+            </TouchableOpacity>
+          )}
+          
+          {place.website && (
+            <TouchableOpacity style={styles.actionButton} onPress={handleWebsite}>
+              <Text style={styles.actionText}>website</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {place.openingHours && place.openingHours.length > 0 && (
         <View style={styles.hours}>
@@ -123,39 +132,31 @@ const LocationSuggestionCard = ({ suggestion, onPress, style }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.card,
-    borderRadius: ROUNDED_DESIGN.radius.soft,
+    borderRadius: ROUNDED_DESIGN.radius.gentle,
     padding: ROUNDED_DESIGN.spacing.spacious,
     marginBottom: ROUNDED_DESIGN.spacing.comfortable,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    ...ROUNDED_DESIGN.shadows.soft,
+    overflow: 'hidden',
+    ...ROUNDED_DESIGN.shadows.gentle,
   },
   header: {
     flexDirection: 'column',
-    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
-    padding: ROUNDED_DESIGN.spacing.gentle,
-    backgroundColor: COLORS.tertiary,
-    borderRadius: ROUNDED_DESIGN.radius.gentle,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    padding: 0,
   },
   title: {
-    fontSize: 19,
+    fontSize: ROUNDED_DESIGN.typography.large,
     fontWeight: '400',
     color: COLORS.text,
-    marginBottom: ROUNDED_DESIGN.spacing.minimal,
-    letterSpacing: 0.2,
+    marginBottom: ROUNDED_DESIGN.spacing.gentle,
+    letterSpacing: -0.2,
   },
   distance: {
-    fontSize: 12,
-    color: COLORS.lightText,
+    fontSize: ROUNDED_DESIGN.typography.small,
+    color: COLORS.mutedText,
     fontWeight: '300',
-    textTransform: 'lowercase',
   },
   placeInfo: {
     marginBottom: ROUNDED_DESIGN.spacing.comfortable,
-    padding: ROUNDED_DESIGN.spacing.gentle,
-    backgroundColor: COLORS.surface,
-    borderRadius: ROUNDED_DESIGN.radius.gentle,
-    ...ROUNDED_DESIGN.shadows.gentle,
   },
   placeName: {
     fontSize: 17,
@@ -165,85 +166,77 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   address: {
-    fontSize: 14,
+    fontSize: ROUNDED_DESIGN.typography.body,
     color: COLORS.lightText,
     marginBottom: ROUNDED_DESIGN.spacing.comfortable,
     fontWeight: '300',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   details: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: ROUNDED_DESIGN.spacing.comfortable,
-    padding: ROUNDED_DESIGN.spacing.gentle,
-    backgroundColor: COLORS.accent + '15',
-    borderRadius: ROUNDED_DESIGN.radius.gentle,
+    gap: ROUNDED_DESIGN.spacing.spacious,
   },
   rating: {
-    fontSize: 12,
-    color: COLORS.secondary,
-    fontWeight: '300',
+    fontSize: ROUNDED_DESIGN.typography.small,
+    color: COLORS.text,
+    fontWeight: '400',
   },
   type: {
-    fontSize: 11,
-    color: COLORS.lightText,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-    borderRadius: 0,
+    fontSize: ROUNDED_DESIGN.typography.small,
+    color: COLORS.mutedText,
+    backgroundColor: COLORS.buttonBg,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
+    paddingVertical: ROUNDED_DESIGN.spacing.minimal,
+    borderRadius: ROUNDED_DESIGN.radius.full,
     fontWeight: '300',
-    textTransform: 'lowercase',
   },
   placeImage: {
     width: '100%',
-    height: 100,
-    borderRadius: 0,
-    marginBottom: 16,
-    opacity: 0.8,
+    height: 120,
+    borderRadius: ROUNDED_DESIGN.radius.minimal,
+    marginBottom: ROUNDED_DESIGN.spacing.spacious,
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-    marginTop: 8,
+    gap: ROUNDED_DESIGN.spacing.comfortable,
+    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
+    marginTop: ROUNDED_DESIGN.spacing.comfortable,
   },
   actionButton: {
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-    paddingVertical: 4,
-    borderRadius: 0,
-    borderWidth: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
+    backgroundColor: COLORS.buttonBg,
+    paddingHorizontal: ROUNDED_DESIGN.spacing.spacious,
+    paddingVertical: ROUNDED_DESIGN.spacing.gentle,
+    borderRadius: ROUNDED_DESIGN.radius.full,
   },
   actionText: {
-    fontSize: 11,
+    fontSize: ROUNDED_DESIGN.typography.small,
     color: COLORS.text,
-    fontWeight: '300',
-    textTransform: 'lowercase',
+    fontWeight: '400',
   },
   hours: {
-    marginTop: 16,
-    paddingTop: 12,
+    marginTop: ROUNDED_DESIGN.spacing.comfortable,
+    paddingTop: ROUNDED_DESIGN.spacing.comfortable,
     borderTopWidth: 1,
     borderTopColor: COLORS.divider,
   },
   hoursTitle: {
-    fontSize: 11,
+    fontSize: ROUNDED_DESIGN.typography.small,
     color: COLORS.text,
-    fontWeight: '300',
-    marginBottom: 4,
-    textTransform: 'lowercase',
+    fontWeight: '400',
+    marginBottom: ROUNDED_DESIGN.spacing.gentle,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   hoursContainer: {
     marginTop: 4,
   },
   hoursLine: {
-    fontSize: 11,
+    fontSize: ROUNDED_DESIGN.typography.small,
     color: COLORS.lightText,
-    lineHeight: 16,
+    lineHeight: 18,
     fontWeight: '300',
-    marginBottom: 2,
+    marginBottom: ROUNDED_DESIGN.spacing.minimal,
   },
   description: {
     fontSize: 13,
