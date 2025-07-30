@@ -11,10 +11,11 @@ import PeacefulLoader from './src/components/PeacefulLoader';
 import StepByStepLoader from './src/components/StepByStepLoader';
 import LocationVarietyDebug from './src/components/LocationVarietyDebug';
 import { SettingsScreen } from './src/components/SettingsScreen';
+import BlobBackground from './src/components/BlobBackground';
 import { getTodaysSuggestion, getNewSuggestion } from './src/services/suggestionService';
 import { notificationService } from './src/services/notificationService';
 import { STORAGE_KEYS } from './src/constants/storage';
-import colors, { ROUNDED_DESIGN } from './src/constants/colors';
+import DESIGN_SYSTEM, { COLORS, ROUNDED_DESIGN } from './src/constants/designSystem';
 
 export default function App() {
   const [suggestion, setSuggestion] = useState(null);
@@ -98,13 +99,14 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={DESIGN_SYSTEM.colors.background.primary} />
+      <BlobBackground />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <MindfulContainer fadeIn slideIn delay={0}>
           <View style={styles.header}>
-            <Text style={styles.greeting}>Today's me time</Text>
+            <Text style={styles.greeting}>keep track of{"\n"}your wellness{"\n"}with ease</Text>
             <TouchableOpacity style={styles.settingsButton} onPress={openSettings}>
-              <Ionicons name="settings-outline" size={20} color={colors.text} />
+              <Ionicons name="settings-outline" size={22} color={DESIGN_SYSTEM.colors.interactiveText} />
             </TouchableOpacity>
           </View>
         </MindfulContainer>
@@ -158,53 +160,57 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: DESIGN_SYSTEM.colors.background.primary,
   },
   scrollContent: {
-    paddingHorizontal: ROUNDED_DESIGN.spacing.spacious,
-    paddingBottom: ROUNDED_DESIGN.spacing.expansive + 12,
+    paddingHorizontal: DESIGN_SYSTEM.spacing.xl,
+    paddingBottom: DESIGN_SYSTEM.spacing.hero,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: ROUNDED_DESIGN.spacing.spacious,
-    marginBottom: ROUNDED_DESIGN.spacing.generous,
-    paddingHorizontal: ROUNDED_DESIGN.spacing.gentle,
+    alignItems: 'flex-start',
+    marginTop: DESIGN_SYSTEM.spacing.hero,
+    marginBottom: DESIGN_SYSTEM.spacing.hero,
+    paddingHorizontal: DESIGN_SYSTEM.spacing.md,
   },
   greeting: {
-    fontSize: ROUNDED_DESIGN.typography.xxlarge,
-    fontWeight: '300',
-    color: colors.text,
-    letterSpacing: -0.5,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.display,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.heavy,
+    color: DESIGN_SYSTEM.colors.text.primary,
+    letterSpacing: DESIGN_SYSTEM.typography.letterSpacing.tight,
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.display * DESIGN_SYSTEM.typography.lineHeight.tight,
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   settingsButton: {
-    width: 44,
-    height: 44,
+    width: 56,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: colors.buttonBg,
+    borderRadius: DESIGN_SYSTEM.borderRadius.lg,
+    backgroundColor: DESIGN_SYSTEM.colors.interactive,
+    ...DESIGN_SYSTEM.shadows.card,
   },
   suggestionSection: {
-    marginBottom: ROUNDED_DESIGN.spacing.generous,
+    marginBottom: DESIGN_SYSTEM.spacing.hero,
   },
   sectionTitle: {
-    fontSize: ROUNDED_DESIGN.typography.large,
-    fontWeight: '400',
-    color: colors.text,
-    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
-    letterSpacing: -0.3,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.heading,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.bold,
+    color: DESIGN_SYSTEM.colors.text.primary,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
+    letterSpacing: DESIGN_SYSTEM.typography.letterSpacing.tight,
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.heading * DESIGN_SYSTEM.typography.lineHeight.tight,
   },
   spotsSubtitle: {
-    fontSize: ROUNDED_DESIGN.typography.body,
-    color: colors.lightText,
-    marginBottom: ROUNDED_DESIGN.spacing.spacious,
-    fontWeight: '300',
+    fontSize: DESIGN_SYSTEM.typography.fontSize.subtitle,
+    color: DESIGN_SYSTEM.colors.text.secondary,
+    marginBottom: DESIGN_SYSTEM.spacing.xl,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.medium,
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.subtitle * DESIGN_SYSTEM.typography.lineHeight.relaxed,
   },
   spotCard: {
-    marginBottom: 16,
+    marginBottom: DESIGN_SYSTEM.spacing.md,
   },
 });

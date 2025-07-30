@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native';
-import colors from '../constants/colors';
+import DESIGN_SYSTEM, { BUTTON_STYLES } from '../constants/designSystem';
 import { getAnimationConfig } from '../utils/platformDetection';
 
 export const GentleButton = ({ title, onPress, style, variant = 'primary' }) => {
@@ -39,26 +39,21 @@ export const GentleButton = ({ title, onPress, style, variant = 'primary' }) => 
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+    ...BUTTON_STYLES.primary,
     alignItems: 'center',
   },
   secondaryButton: {
-    backgroundColor: colors.secondary,
+    ...BUTTON_STYLES.secondary,
   },
   ghostButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.lightText,
+    ...BUTTON_STYLES.ghost,
   },
   buttonText: {
-    color: colors.WHITE,
-    fontSize: 16,
-    fontWeight: '600',
+    color: DESIGN_SYSTEM.colors.interactiveText,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.body,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.semibold,
   },
   ghostButtonText: {
-    color: colors.lightText,
+    color: DESIGN_SYSTEM.colors.text.secondary,
   },
 });

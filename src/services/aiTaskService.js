@@ -61,15 +61,10 @@ class AITaskService {
       const prompt = this.buildTaskPrompt(keywords, location, timeOfDay, mood, activityLevel, weather, contextualSeason, contextualEnergyLevel, options);
       const cacheKey = this.generateCacheKey(prompt);
       
-      // Check cache first - very short cache time for more variety
+      // Check cache first
       const cached = this.cache.get(cacheKey);
-      if (cached && (Date.now() - cached.timestamp) < 60000) { // 1 minute cache
-        // Add 70% chance to bypass cache for more variety
-        if (Math.random() > 0.3) {
-          console.log('🔄 Bypassing cache for variety');
-        } else {
-          return cached.task;
-        }
+      if (cached && (Date.now() - cached.timestamp) < 300000) { // 5 minute cache
+        return cached.task;
       }
 
       if (config.ENABLE_DEBUG_LOGS) {
@@ -80,17 +75,17 @@ class AITaskService {
         messages: [
           {
             role: 'system',
-            content: `Wellness guide. Create relaxation task. Respond only with JSON:
-{"title":"3-6 words","description":"1-2 sentences","timeEstimate":"X-Y min","category":"mindful|sensory|movement|reflection|discovery|rest|creative|nature|social|connection|learning|play|service|gratitude","icon":"heart|flower|walk|book|compass|moon|brush|leaf|people|star|sunny|ear|eye|water|fitness|handshake|school|game|ribbon|gift"}
-Be concise.`
+            content: `You create simple wellness activities. Respond with JSON only:
+{"title":"Short title","description":"What to do","timeEstimate":"X-Y min","category":"mindful|sensory|movement|reflection|discovery|rest|creative|nature|social|connection|learning|play|service|gratitude","icon":"heart|leaf|walk|book|eye|ear|moon|sunny|star|water|flower|hand"}
+Keep it simple and clear.`
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 150, // Reduced from 250 to save costs
-        temperature: 0.8  // Reduced from 1.0 for better cost efficiency
+        max_tokens: 100, // Keep responses concise
+        temperature: 0.7  // More consistent responses
       });
 
       const content = response.choices[0].message.content;
@@ -125,197 +120,57 @@ Be concise.`
   }
 
   buildTaskPrompt(keywords, location, timeOfDay, mood, activityLevel, weather = null, season = null, energyLevel = 'balanced', options = {}) {
-    // Create varied but clear prompts with diverse categories
-    const randomSeed = Math.random();
-    const promptStyles = [
-      'simple and clear',
-      'practical and direct', 
-      'easy to understand',
-      'straightforward and helpful',
-      'accessible and friendly',
-      'clear and actionable',
-      'simple and effective',
-      'direct and meaningful'
-    ];
+    // Simple, direct prompt that's easy for AI to understand
+    let prompt = 'Create a simple wellness activity. ';
     
-    const taskFormats = [
-      'a simple activity', 
-      'an easy practice',
-      'a brief exercise',
-      'a quick moment',
-      'a simple routine',
-      'an easy way to',
-      'a quick practice',
-      'a simple approach to'
-    ];
-    
-    // Force diverse categories by rotating through them
-    const categories = ['mindful', 'sensory', 'movement', 'reflection', 'discovery', 'rest', 'creative', 'nature', 'social', 'connection', 'learning', 'play', 'service', 'gratitude'];
-    const categoryHints = {
-      'mindful': 'Focus on breathing, meditation, awareness, or mindfulness',
-      'sensory': 'Use your five senses - touch, sight, sound, smell, taste',
-      'movement': 'Include gentle movement, stretching, walking, or physical activity',
-      'reflection': 'Involve thinking, journaling, contemplation, or self-reflection',
-      'discovery': 'Explore something new, learn, observe, or investigate',
-      'rest': 'Focus on relaxation, resting, taking breaks, or slowing down',
-      'creative': 'Express creativity through art, music, writing, or imagination',
-      'nature': 'Connect with nature, plants, outdoors, or natural elements',
-      'social': 'Connect with others, community, or social interaction',
-      'connection': 'Build meaningful bonds with yourself, others, or your environment',
-      'learning': 'Acquire new knowledge, skills, or understanding through gentle exploration',
-      'play': 'Engage in lighthearted, joyful activities that bring spontaneity and fun',
-      'service': 'Contribute to others well-being through small acts of kindness or helpfulness',
-      'gratitude': 'Recognize and appreciate the positive aspects of life and experiences'
-    };
-    
-    // Pick a random category to ensure variety
-    const forcedCategory = categories[Math.floor(randomSeed * categories.length)];
-    const categoryHint = categoryHints[forcedCategory];
-    
-    const selectedStyle = promptStyles[Math.floor(randomSeed * promptStyles.length)];
-    const selectedFormat = taskFormats[Math.floor((randomSeed * 7) % taskFormats.length)];
-    
-    let prompt = `Create ${selectedFormat} that is ${selectedStyle} for someone wanting to feel more peaceful. `;
-    prompt += `IMPORTANT: This task should be in the "${forcedCategory}" category. ${categoryHint}. `;
-    
-    // Add context if provided (for scenario-based tasks)
+    // Add context if provided
     if (options.context) {
-      prompt += `Context: They are ${options.context}. `;
+      prompt += `The person is ${options.context}. `;
     }
     
-    // Add contextual variety
-    if (keywords.length > 0) {
-      prompt += `Include these elements: ${keywords.join(', ')}. `;
-    }
-    
+    // Add location context
     if (location) {
-      const locationTypes = location.types || [];
-      prompt += `They are at ${location.name || 'a place'}`;
-      if (locationTypes.length > 0) {
-        prompt += ` (${locationTypes[0]})`;
-      }
-      prompt += '. ';
+      prompt += `They are at ${location.name || 'a location'}. `;
     }
     
-    // Add simple time context
-    const timeDescriptions = {
-      'morning': 'in the morning',
-      'afternoon': 'in the afternoon',
-      'evening': 'in the evening',
-      'any': 'anytime'
-    };
-    
-    const timeDesc = timeDescriptions[timeOfDay] || 'anytime';
-    prompt += `This is for ${timeDesc}. `;
-    prompt += `The person wants to feel ${mood} and prefers ${activityLevel} activities. `;
-    
-    // Add weather context if available
-    if (weather) {
-      const weatherTasks = {
-        'sunny': 'enjoying natural light and warmth',
-        'rainy': 'finding comfort indoors and appreciating cozy moments',
-        'cloudy': 'embracing soft, gentle energy',
-        'stormy': 'creating inner calm despite external energy',
-        'snowy': 'appreciating winter beauty and stillness',
-        'foggy': 'working with mysterious, contemplative atmosphere',
-        'windy': 'feeling connected to natural movement and change'
-      };
-      const weatherHint = weatherTasks[weather.toLowerCase()] || 'adapting to current weather conditions';
-      prompt += `The weather is ${weather}, so consider ${weatherHint}. `;
+    // Add keywords if provided
+    if (keywords.length > 0) {
+      prompt += `Focus on: ${keywords.slice(0, 3).join(', ')}. `;
     }
     
-    // Add seasonal context if available
-    if (season) {
-      const seasonalTasks = {
-        'spring': 'renewal, growth, fresh beginnings, and emerging life',
-        'summer': 'abundance, energy, outdoor connection, and vibrant life',
-        'autumn': 'reflection, gratitude, letting go, and natural transitions',
-        'winter': 'rest, introspection, cozy comfort, and inner warmth'
-      };
-      const seasonHint = seasonalTasks[season.toLowerCase()] || 'connecting with the current season';
-      prompt += `It's ${season}, so incorporate themes of ${seasonHint}. `;
+    // Add simple time and mood context
+    if (timeOfDay !== 'any') {
+      prompt += `This is for ${timeOfDay}. `;
     }
     
-    // Add energy level context
-    const energyAdjustments = {
-      'low': 'very gentle, restorative activities that require minimal effort',
-      'tired': 'calming, restful practices that help rejuvenate',
-      'balanced': 'moderate activities that maintain steady energy',
-      'energetic': 'more engaging activities that channel positive energy',
-      'restless': 'movement-based or engaging tasks that help settle energy',
-      'overwhelmed': 'grounding, simplifying activities that create calm'
-    };
-    const energyHint = energyAdjustments[energyLevel] || 'activities matching their current energy';
-    prompt += `Their energy level is ${energyLevel}, so suggest ${energyHint}. `;
+    prompt += `The person wants to feel ${mood}. `;
     
-    // Add category-specific examples and variety hints
-    const categoryExamples = {
-      'mindful': ['Three Deep Breaths', 'Notice Your Surroundings', 'Body Scan Check-in', 'Moment of Gratitude'],
-      'sensory': ['Listen to Sounds Around You', 'Feel Different Textures', 'Notice Colors and Light', 'Taste Something Mindfully'],
-      'movement': ['Gentle Neck Rolls', 'Ankle Circles', 'Shoulder Blade Squeezes', 'Hip Sway Meditation'],
-      'reflection': ['Write Three Thoughts', 'Reflect on Today', 'Consider Your Goals', 'Think About Growth'],
-      'discovery': ['Find Something New Nearby', 'Learn One Small Fact', 'Observe People Watching', 'Notice Architecture'],
-      'rest': ['Sit and Simply Be', 'Close Your Eyes', 'Progressive Muscle Relaxation', 'Rest Your Mind'],
-      'creative': ['Doodle or Sketch', 'Hum a Melody', 'Write a Short Poem', 'Imagine a Story'],
-      'nature': ['Find a Plant to Observe', 'Feel Natural Textures', 'Watch Clouds', 'Listen to Birds'],
-      'social': ['Smile at Someone', 'Text a Friend', 'Have a Brief Chat', 'Express Appreciation'],
-      'connection': ['Send a Caring Message', 'Connect with Your Values', 'Share a Memory', 'Practice Self-Compassion'],
-      'learning': ['Read About Something New', 'Ask Someone a Question', 'Watch How Something Works', 'Practice a New Word'],
-      'play': ['Make a Silly Face', 'Create a Simple Game', 'Dance to One Song', 'Tell Yourself a Joke'],
-      'service': ['Hold a Door Open', 'Pick Up Litter', 'Compliment Someone', 'Offer Help to Someone'],
-      'gratitude': ['List Three Good Things', 'Thank Someone Mentally', 'Appreciate Your Body', 'Notice Daily Blessings']
-    };
+    // Add energy level guidance
+    if (energyLevel === 'low' || energyLevel === 'tired') {
+      prompt += 'Make it very gentle and restful. ';
+    } else if (energyLevel === 'energetic') {
+      prompt += 'Make it more engaging but still peaceful. ';
+    }
     
-    const examples = categoryExamples[forcedCategory] || [];
-    const randomExample = examples[Math.floor(Math.random() * examples.length)];
-    
-    // Add category-specific task variations for richer diversity
-    const categoryVariations = {
-      'mindful': ['breathing awareness', 'present moment focus', 'mindful observation', 'body awareness', 'mental clarity'],
-      'sensory': ['tactile exploration', 'visual awareness', 'sound meditation', 'taste mindfulness', 'aromatherapy moment'],
-      'movement': ['gentle stretching', 'walking meditation', 'body mobilization', 'posture awareness', 'energy flow'],
-      'reflection': ['self-inquiry', 'thought observation', 'memory appreciation', 'value exploration', 'insight gathering'],
-      'discovery': ['curiosity practice', 'learning moment', 'observation skill', 'exploration activity', 'wonder cultivation'],
-      'rest': ['relaxation technique', 'tension release', 'calming practice', 'peace creation', 'stillness embrace'],
-      'creative': ['artistic expression', 'imagination exercise', 'creative flow', 'inspiration seeking', 'beauty creation'],
-      'nature': ['natural connection', 'outdoor awareness', 'earth appreciation', 'seasonal noticing', 'life observation'],
-      'social': ['human connection', 'community building', 'relationship nurturing', 'kindness sharing', 'empathy practice'],
-      'connection': ['relationship deepening', 'self-bonding', 'value alignment', 'heart opening', 'belonging cultivation'],
-      'learning': ['knowledge seeking', 'skill building', 'understanding growth', 'wisdom gathering', 'curiosity feeding'],
-      'play': ['joyful exploration', 'lighthearted activity', 'fun discovery', 'playful experiment', 'spontaneous joy'],
-      'service': ['kindness offering', 'help providing', 'care giving', 'contribution making', 'support extending'],
-      'gratitude': ['appreciation practice', 'thankfulness cultivation', 'blessing recognition', 'abundance noticing', 'joy acknowledgment']
-    };
-    
-    const variations = categoryVariations[forcedCategory] || ['mindful activity'];
-    const selectedVariation = variations[Math.floor(Math.random() * variations.length)];
-    
+    // Simple requirements
     prompt += `
     Requirements:
-    - Takes 1-30 minutes
-    - Easy to understand and do
-    - Helps with relaxation and peace
-    - Use simple, clear language
-    - Avoid overly poetic or metaphorical language
-    - Make the title unique and varied (3-8 words) - avoid generic titles
-    - Keep description practical and specific
-    - MUST be in the "${forcedCategory}" category
-    - Focus on: ${selectedVariation}
-    - Example of ${forcedCategory} task: "${randomExample}"
+    - Takes 1-15 minutes
+    - Easy to understand and do immediately
+    - Uses simple, clear language
+    - Helps create peace and calm
+    - Title should be 3-6 words
+    - Description should be 1-2 short sentences
     
-    Categories: mindful, sensory, movement, reflection, discovery, rest, creative, nature, social, connection, learning, play, service, gratitude
-    Use simple Ionicons icon names like: sunny, moon, heart, walk, leaf, eye, ear, book, handshake, school, game, ribbon, gift, etc.
-    
-    IMPORTANT: Create diverse, unique titles that match the "${forcedCategory}" category and focus on ${selectedVariation}. 
-    Avoid repetitive suggestions and make each one feel distinct and purposeful.`;
+    Choose from these categories: mindful, sensory, movement, reflection, discovery, rest, creative, nature, social, connection, learning, play, service, gratitude
+    Use simple icons: heart, leaf, walk, book, eye, ear, moon, sunny, star, water, flower, hand`;
 
     return prompt;
   }
 
   generateCacheKey(prompt) {
-    // Include timestamp in cache key for more variety
-    const timeWindow = Math.floor(Date.now() / 120000); // 2-minute windows
-    const baseKey = btoa(prompt + timeWindow).replace(/[^a-zA-Z0-9]/g, '').substr(0, 50);
+    // Simple hash of the prompt
+    const baseKey = btoa(prompt).replace(/[^a-zA-Z0-9]/g, '').substr(0, 50);
     return baseKey;
   }
 
@@ -325,118 +180,118 @@ Be concise.`
     
     const morningTasks = [
       {
-        title: "Greet the morning mindfully",
-        description: "Take three deep breaths and set a gentle intention for your day",
+        title: "Morning breaths",
+        description: "Take three deep breaths and set an intention for your day.",
         timeEstimate: "2-5 min",
         category: "mindful",
-        icon: "sunny-outline"
+        icon: "sunny"
       },
       {
-        title: "Morning stretch",
-        description: "Gently stretch your body and notice how you feel today",
+        title: "Gentle stretch",
+        description: "Stretch your body and notice how you feel.",
         timeEstimate: "5-10 min",
         category: "movement",
-        icon: "body-outline"
+        icon: "walk"
       }
     ];
     
     const afternoonTasks = [
       {
-        title: "Mindful afternoon pause",
-        description: "Step away from your tasks and take a moment to reset",
+        title: "Afternoon pause",
+        description: "Step away from tasks and take a moment to reset.",
         timeEstimate: "2-5 min",
         category: "rest",
-        icon: "pause-outline"
+        icon: "moon"
       },
       {
-        title: "Look out a window",
-        description: "Find a window and observe the world outside for a few moments",
+        title: "Window watching",
+        description: "Look outside and observe what you see.",
         timeEstimate: "3-5 min",
         category: "discovery",
-        icon: "telescope-outline"
+        icon: "eye"
       }
     ];
     
     const eveningTasks = [
       {
         title: "Evening gratitude",
-        description: "Think of three things from today that brought you peace",
+        description: "Think of three good things from today.",
         timeEstimate: "3-5 min",
-        category: "reflection",
-        icon: "moon-outline"
+        category: "gratitude",
+        icon: "star"
       },
       {
-        title: "Release the day",
-        description: "Take a few deep breaths and let go of today's tensions",
+        title: "Let go",
+        description: "Take deep breaths and release today's tensions.",
         timeEstimate: "2-5 min",
         category: "mindful",
-        icon: "sparkles-outline"
+        icon: "heart"
       }
     ];
     
     const generalTasks = [
       {
-        title: "Notice your breathing",
-        description: "Take a moment to observe your natural breath without changing it",
+        title: "Notice breathing",
+        description: "Watch your natural breath for a moment.",
         timeEstimate: "1-3 min",
         category: "mindful",
-        icon: "heart-outline"
-      },
-      {
-        title: "Feel your feet on the ground",
-        description: "Focus on the sensation of being grounded and present",
-        timeEstimate: "1-2 min",
-        category: "sensory",
-        icon: "footsteps-outline"
-      },
-      {
-        title: "Look for something beautiful nearby",
-        description: "Notice one beautiful detail in your current surroundings",
-        timeEstimate: "2-5 min",
-        category: "discovery",
-        icon: "eye-outline"
-      },
-      {
-        title: "Listen to the sounds around you",
-        description: "Identify three different sounds in your environment",
-        timeEstimate: "2-5 min",
-        category: "sensory",
-        icon: "ear-outline"
-      },
-      {
-        title: "Connect with your values",
-        description: "Think about what matters most to you right now",
-        timeEstimate: "3-5 min",
-        category: "connection",
         icon: "heart"
       },
       {
-        title: "Learn something new",
-        description: "Look up one interesting fact about something around you",
+        title: "Feel your feet",
+        description: "Focus on your feet touching the ground.",
+        timeEstimate: "1-2 min",
+        category: "sensory",
+        icon: "walk"
+      },
+      {
+        title: "Find beauty",
+        description: "Look for one beautiful thing nearby.",
+        timeEstimate: "2-5 min",
+        category: "discovery",
+        icon: "eye"
+      },
+      {
+        title: "Listen around",
+        description: "Notice three different sounds you hear.",
+        timeEstimate: "2-5 min",
+        category: "sensory",
+        icon: "ear"
+      },
+      {
+        title: "Think values",
+        description: "Consider what matters most to you right now.",
+        timeEstimate: "3-5 min",
+        category: "reflection",
+        icon: "heart"
+      },
+      {
+        title: "Learn something",
+        description: "Find one interesting fact about something nearby.",
         timeEstimate: "2-5 min",
         category: "learning",
-        icon: "school-outline"
+        icon: "book"
       },
       {
-        title: "Play with perspective",
-        description: "Look at something from three different angles or viewpoints",
+        title: "Change perspective",
+        description: "Look at something from a different angle.",
         timeEstimate: "2-4 min",
         category: "play",
-        icon: "camera-outline"
+        icon: "eye"
       },
       {
-        title: "Offer a small kindness",
-        description: "Do one small thing to help or brighten someone's day",
+        title: "Small kindness",
+        description: "Do something small to help someone.",
         timeEstimate: "3-10 min",
         category: "service",
-        icon: "heart-circle-outline"
+        icon: "hand"
       },
       {
-        title: "Appreciate this moment",
-        description: "Name three things you're grateful for right now",
+        title: "Three good things",
+        description: "Name three things you're grateful for.",
         timeEstimate: "2-3 min",
         category: "gratitude",
-        icon: "star-outline"
+        icon: "star"
       }
     ];
 

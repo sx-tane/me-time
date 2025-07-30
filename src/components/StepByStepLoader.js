@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MindfulContainer from './MindfulContainer';
 import PeacefulLoader from './PeacefulLoader';
-import colors, { ROUNDED_DESIGN } from '../constants/colors';
+import DESIGN_SYSTEM from '../constants/designSystem';
 
 const StepByStepLoader = ({ 
   stage = null, 
@@ -83,9 +83,9 @@ const StepByStepLoader = ({
                     name={isCompleted ? 'checkmark' : step.icon} 
                     size={16} 
                     color={
-                      isCompleted ? colors.card :
-                      isCurrent ? colors.card :
-                      colors.lightText
+                      isCompleted ? DESIGN_SYSTEM.colors.surface.card :
+                      isCurrent ? DESIGN_SYSTEM.colors.surface.card :
+                      DESIGN_SYSTEM.colors.text.secondary
                     }
                   />
                 </View>
@@ -116,77 +116,78 @@ const StepByStepLoader = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: ROUNDED_DESIGN.spacing.spacious,
+    padding: DESIGN_SYSTEM.spacing.lg,
   },
   loaderSection: {
-    marginBottom: ROUNDED_DESIGN.spacing.generous,
+    marginBottom: DESIGN_SYSTEM.spacing.xxl,
   },
   stepsContainer: {
-    backgroundColor: colors.card,
-    borderRadius: ROUNDED_DESIGN.radius.gentle,
-    padding: ROUNDED_DESIGN.spacing.spacious,
-    ...ROUNDED_DESIGN.shadows.gentle,
+    backgroundColor: DESIGN_SYSTEM.colors.surface.card,
+    borderRadius: DESIGN_SYSTEM.borderRadius.lg,
+    padding: DESIGN_SYSTEM.spacing.xl,
+    ...DESIGN_SYSTEM.shadows.card,
   },
   stepsTitle: {
-    fontSize: ROUNDED_DESIGN.typography.medium,
-    fontWeight: '400',
-    color: colors.text,
-    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.subtitle,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.medium,
+    color: DESIGN_SYSTEM.colors.text.primary,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
     textAlign: 'center',
   },
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
     position: 'relative',
   },
   stepIcon: {
     width: 36,
     height: 36,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: colors.buttonBg,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    backgroundColor: DESIGN_SYSTEM.colors.interactive,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: ROUNDED_DESIGN.spacing.comfortable,
+    marginRight: DESIGN_SYSTEM.spacing.lg,
+    ...DESIGN_SYSTEM.shadows.subtle,
   },
   stepIconCompleted: {
-    backgroundColor: colors.success,
+    backgroundColor: DESIGN_SYSTEM.colors.semantic.success,
   },
   stepIconCurrent: {
-    backgroundColor: colors.primary,
+    backgroundColor: DESIGN_SYSTEM.colors.primary,
   },
   stepIconUpcoming: {
-    backgroundColor: colors.buttonBg,
+    backgroundColor: DESIGN_SYSTEM.colors.interactive,
   },
   stepContent: {
     flex: 1,
   },
   stepText: {
-    fontSize: ROUNDED_DESIGN.typography.body,
-    fontWeight: '400',
-    color: colors.lightText,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.body,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.regular,
+    color: DESIGN_SYSTEM.colors.text.secondary,
   },
   stepTextCompleted: {
-    color: colors.text,
+    color: DESIGN_SYSTEM.colors.text.primary,
     opacity: 0.6,
   },
   stepTextCurrent: {
-    color: colors.text,
-    fontWeight: '400',
+    color: DESIGN_SYSTEM.colors.text.primary,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.medium,
   },
   stepTextUpcoming: {
-    color: colors.mutedText,
+    color: DESIGN_SYSTEM.colors.text.tertiary,
   },
   stepConnector: {
     position: 'absolute',
     left: 17,
     top: 36,
     width: 2,
-    height: ROUNDED_DESIGN.spacing.spacious,
-    backgroundColor: colors.divider,
+    height: DESIGN_SYSTEM.spacing.lg,
+    backgroundColor: DESIGN_SYSTEM.colors.surface.divider,
   },
   stepConnectorActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: DESIGN_SYSTEM.colors.primary,
     opacity: 0.3,
   },
 });

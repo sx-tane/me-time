@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
-import { COLORS, ROUNDED_DESIGN } from '../constants/colors';
+import DESIGN_SYSTEM from '../constants/designSystem';
 
 const PeacefulLoader = ({ 
   message = "Taking a gentle moment...", 
@@ -93,17 +93,17 @@ const PeacefulLoader = ({
             <Animated.View style={[
               styles.floatingDot,
               { transform: [{ translateY: animValue1 }] },
-              { backgroundColor: COLORS.accent }
+              { backgroundColor: DESIGN_SYSTEM.colors.accent.peach }
             ]} />
             <Animated.View style={[
               styles.floatingDot,
               { transform: [{ translateY: animValue2 }] },
-              { backgroundColor: COLORS.primary, marginHorizontal: ROUNDED_DESIGN.spacing.comfortable }
+              { backgroundColor: DESIGN_SYSTEM.colors.primary, marginHorizontal: DESIGN_SYSTEM.spacing.lg }
             ]} />
             <Animated.View style={[
               styles.floatingDot,
               { transform: [{ translateY: animValue3 }] },
-              { backgroundColor: COLORS.accent }
+              { backgroundColor: DESIGN_SYSTEM.colors.accent.peach }
             ]} />
           </View>
         );
@@ -164,26 +164,27 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: ROUNDED_DESIGN.spacing.expansive,
+    padding: DESIGN_SYSTEM.spacing.hero,
   },
   loaderContainer: {
-    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    marginBottom: DESIGN_SYSTEM.spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   breathingCircle: {
     width: 64,
     height: 64,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: COLORS.buttonBg,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    backgroundColor: DESIGN_SYSTEM.colors.interactive,
     alignItems: 'center',
     justifyContent: 'center',
+    ...DESIGN_SYSTEM.shadows.subtle,
   },
   innerCircle: {
     width: 32,
     height: 32,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: COLORS.accent + '40',
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    backgroundColor: DESIGN_SYSTEM.colors.primary + '60',
   },
   floatingContainer: {
     flexDirection: 'row',
@@ -193,21 +194,22 @@ const styles = StyleSheet.create({
   floatingDot: {
     width: 12,
     height: 12,
-    borderRadius: ROUNDED_DESIGN.radius.full,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
   },
   pulseCircle: {
     width: 56,
     height: 56,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: COLORS.buttonBg,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    backgroundColor: DESIGN_SYSTEM.colors.interactive,
     alignItems: 'center',
     justifyContent: 'center',
+    ...DESIGN_SYSTEM.shadows.subtle,
   },
   pulseInner: {
     width: 24,
     height: 24,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: COLORS.accent,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    backgroundColor: DESIGN_SYSTEM.colors.primary,
   },
   rippleContainer: {
     width: 80,
@@ -219,36 +221,36 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    borderRadius: ROUNDED_DESIGN.radius.full,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: DESIGN_SYSTEM.colors.surface.border,
   },
   rippleRing2: {
     width: 60,
     height: 60,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    borderColor: COLORS.divider,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    borderColor: DESIGN_SYSTEM.colors.surface.divider,
   },
   rippleRing3: {
     width: 80,
     height: 80,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    borderColor: COLORS.divider,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    borderColor: DESIGN_SYSTEM.colors.surface.divider,
   },
   message: {
-    fontSize: ROUNDED_DESIGN.typography.body,
-    color: COLORS.lightText,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.body,
+    color: DESIGN_SYSTEM.colors.text.secondary,
     textAlign: 'center',
-    fontWeight: '300',
-    lineHeight: 24,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.light,
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.body * DESIGN_SYSTEM.typography.lineHeight.relaxed,
   },
   dotsContainer: {
-    marginTop: ROUNDED_DESIGN.spacing.comfortable,
+    marginTop: DESIGN_SYSTEM.spacing.lg,
   },
   dots: {
-    fontSize: ROUNDED_DESIGN.typography.medium,
-    color: COLORS.mutedText,
-    letterSpacing: 4,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.subtitle,
+    color: DESIGN_SYSTEM.colors.text.tertiary,
+    letterSpacing: DESIGN_SYSTEM.typography.letterSpacing.wider,
   },
 });
 

@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, ScrollView, Dimensions, StyleSheet, Text } from 'react-native';
 import LocationSuggestionCard from './LocationSuggestionCard';
-import colors, { ROUNDED_DESIGN } from '../constants/colors';
+import DESIGN_SYSTEM from '../constants/designSystem';
 
 const { width: screenWidth } = Dimensions.get('window');
-const CARD_MARGIN = ROUNDED_DESIGN.spacing.spacious;
+const CARD_MARGIN = DESIGN_SYSTEM.spacing.lg;
 const CARDS_PER_PAGE = 5;
 
 const LocationCarousel = ({ locationSuggestions, suggestion, style }) => {
@@ -106,34 +106,35 @@ const LocationCarousel = ({ locationSuggestions, suggestion, style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: ROUNDED_DESIGN.spacing.generous,
+    marginBottom: DESIGN_SYSTEM.spacing.xxl,
   },
   header: {
     paddingHorizontal: CARD_MARGIN,
-    marginBottom: ROUNDED_DESIGN.spacing.spacious,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
   },
   title: {
-    fontSize: ROUNDED_DESIGN.typography.large,
-    fontWeight: '400',
-    color: colors.text,
-    marginBottom: ROUNDED_DESIGN.spacing.gentle,
-    letterSpacing: -0.3,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.heading,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.medium,
+    color: DESIGN_SYSTEM.colors.text.primary,
+    marginBottom: DESIGN_SYSTEM.spacing.sm,
+    letterSpacing: DESIGN_SYSTEM.typography.letterSpacing.tight,
   },
   subtitle: {
-    fontSize: ROUNDED_DESIGN.typography.body,
-    color: colors.lightText,
-    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
-    fontWeight: '300',
+    fontSize: DESIGN_SYSTEM.typography.fontSize.body,
+    color: DESIGN_SYSTEM.colors.text.secondary,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.light,
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.body * DESIGN_SYSTEM.typography.lineHeight.relaxed,
   },
   pageIndicator: {
-    fontSize: ROUNDED_DESIGN.typography.small,
-    color: colors.text,
-    fontWeight: '400',
+    fontSize: DESIGN_SYSTEM.typography.fontSize.small,
+    color: DESIGN_SYSTEM.colors.interactiveText,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.medium,
     textAlign: 'center',
-    paddingVertical: ROUNDED_DESIGN.spacing.gentle,
-    paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
-    backgroundColor: colors.buttonBg,
-    borderRadius: ROUNDED_DESIGN.radius.full,
+    paddingVertical: DESIGN_SYSTEM.spacing.sm,
+    paddingHorizontal: DESIGN_SYSTEM.spacing.lg,
+    backgroundColor: DESIGN_SYSTEM.colors.interactive,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
     alignSelf: 'center',
   },
   singlePageContainer: {
@@ -147,27 +148,27 @@ const styles = StyleSheet.create({
     paddingRight: CARD_MARGIN,
   },
   locationCard: {
-    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: ROUNDED_DESIGN.spacing.comfortable,
+    marginTop: DESIGN_SYSTEM.spacing.lg,
     paddingHorizontal: CARD_MARGIN,
   },
   paginationDot: {
     width: 8,
     height: 8,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    backgroundColor: colors.divider,
-    marginHorizontal: ROUNDED_DESIGN.spacing.minimal,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
+    backgroundColor: DESIGN_SYSTEM.colors.surface.divider,
+    marginHorizontal: DESIGN_SYSTEM.spacing.xs,
   },
   paginationDotActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: DESIGN_SYSTEM.colors.primary,
     width: 24,
     height: 8,
-    borderRadius: ROUNDED_DESIGN.radius.full,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
   },
 });
 

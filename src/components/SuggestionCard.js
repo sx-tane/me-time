@@ -6,15 +6,14 @@ import ChillButton from './ChillButton';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
 import { contemplate, MINDFUL_DELAYS } from '../services/mindfulTiming';
 import { getAnimationConfig, getShadowStyles } from '../utils/platformDetection';
-import colors, { ROUNDED_DESIGN } from '../constants/colors';
+import DESIGN_SYSTEM, { COLORS, ROUNDED_DESIGN, BUTTON_STYLES } from '../constants/designSystem';
 
 export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false, loadingStage = null }) => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const iconBreathAnim = useRef(new Animated.Value(1)).current;
   const [isContemplating, setIsContemplating] = useState(false);
 
-  // Debug log for loading states
-  console.log('🎯 SuggestionCard render - skipLoading:', skipLoading, 'loadingStage:', loadingStage);
+  // Clean render - removed debug logs
 
   useEffect(() => {
     // Reset scale for entrance animation
@@ -79,19 +78,19 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false, loadin
         styles.suggestionCard,
         { transform: [{ scale: scaleAnim }] }
       ]}>
-        {/* Breathing icon */}
+        {/* Clean icon presentation */}
         <Animated.View style={[
           styles.iconContainer,
           { transform: [{ scale: iconBreathAnim }] }
         ]}>
           <Ionicons 
-            name={suggestion.icon || 'heart-outline'} 
-            size={36} 
-            color={colors.primary} 
+            name={suggestion.icon || 'sparkles'} 
+            size={48} 
+            color={DESIGN_SYSTEM.colors.text.inverse} 
           />
         </Animated.View>
 
-        {/* Spacious text layout */}
+        {/* Focused text layout */}
         <View style={styles.textContainer}>
           <Text style={styles.suggestionText}>
             {suggestion?.text || suggestion?.title || ''}
@@ -102,41 +101,28 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false, loadin
               {suggestion.description}
             </Text>
           )}
-          
-          {suggestion.type && (
-            <Text style={styles.suggestionType}>
-              A {suggestion.type} moment
-            </Text>
-          )}
-          
-          {suggestion.timeEstimate && (
-            <Text style={styles.timeEstimate}>
-              {suggestion.timeEstimate}
-            </Text>
-          )}
         </View>
 
-        {/* Contemplative skip button */}
+        {/* Clean action button */}
         <View style={styles.actionContainer}>
           <ChillButton
             title={
               skipLoading 
                 ? (loadingStage === 'generating' 
-                    ? "🤖 AI is creating your new moment..." 
+                    ? "Generating..." 
                     : loadingStage === 'locations' 
-                      ? "🗺️ Finding peaceful nearby spots..." 
+                      ? "Finding spots..." 
                       : loadingStage === 'finalizing'
-                        ? "✨ Preparing everything for you..."
-                        : "🔄 Finding a fresh moment for you...")
+                        ? "Almost ready..."
+                        : "Creating...")
                 : isContemplating 
-                  ? "Contemplating..." 
-                  : "Perhaps another time"
+                  ? "Thinking..." 
+                  : "Skip"
             }
             onPress={handleContemplativeSkip}
-            variant="zen"
+            variant="primary"
             size="medium"
             disabled={isContemplating || skipLoading}
-            contemplativePress={true}
             style={styles.skipButton}
           />
         </View>
@@ -147,80 +133,62 @@ export const SuggestionCard = ({ suggestion, onSkip, skipLoading = false, loadin
 
 const styles = StyleSheet.create({
   cardContainer: {
-    marginVertical: ROUNDED_DESIGN.spacing.spacious,
-    marginHorizontal: ROUNDED_DESIGN.spacing.comfortable,
+    marginVertical: DESIGN_SYSTEM.spacing.lg,
+    marginHorizontal: 0,
   },
   suggestionCard: {
-    backgroundColor: colors.card,
-    borderRadius: ROUNDED_DESIGN.radius.soft,
-    padding: ROUNDED_DESIGN.spacing.generous,
-    paddingVertical: ROUNDED_DESIGN.spacing.luxurious,
+    backgroundColor: DESIGN_SYSTEM.colors.surface.card,
+    borderRadius: DESIGN_SYSTEM.borderRadius.lg,
+    padding: DESIGN_SYSTEM.spacing.hero,
+    paddingVertical: DESIGN_SYSTEM.spacing.hero,
     alignItems: 'center',
-    ...ROUNDED_DESIGN.shadows.soft,
-    minHeight: 380,
+    ...DESIGN_SYSTEM.shadows.hero,
+    minHeight: 480,
     justifyContent: 'space-between',
-    overflow: 'hidden',
   },
   iconContainer: {
-    marginBottom: ROUNDED_DESIGN.spacing.generous,
-    width: 88,
-    height: 88,
-    backgroundColor: colors.tertiary,
-    borderRadius: ROUNDED_DESIGN.radius.full,
+    marginBottom: DESIGN_SYSTEM.spacing.hero,
+    width: 96,
+    height: 96,
+    backgroundColor: DESIGN_SYSTEM.colors.primary,
+    borderRadius: DESIGN_SYSTEM.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    ...DESIGN_SYSTEM.shadows.elevated,
   },
   textContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: ROUNDED_DESIGN.spacing.spacious,
-    marginVertical: ROUNDED_DESIGN.spacing.comfortable,
+    paddingHorizontal: DESIGN_SYSTEM.spacing.lg,
+    marginVertical: DESIGN_SYSTEM.spacing.hero,
+    maxWidth: '100%',
   },
   suggestionText: {
-    fontSize: ROUNDED_DESIGN.typography.xlarge,
-    fontWeight: '400',
-    color: colors.text,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.large,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.heavy,
+    color: DESIGN_SYSTEM.colors.text.primary,
     textAlign: 'center',
-    lineHeight: 40,
-    letterSpacing: -0.5,
-    marginBottom: ROUNDED_DESIGN.spacing.comfortable,
-    fontFamily: 'System',
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.large * DESIGN_SYSTEM.typography.lineHeight.tight,
+    letterSpacing: DESIGN_SYSTEM.typography.letterSpacing.tight,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
   },
   suggestionDescription: {
-    fontSize: ROUNDED_DESIGN.typography.body,
-    color: colors.lightText,
+    fontSize: DESIGN_SYSTEM.typography.fontSize.subtitle,
+    color: DESIGN_SYSTEM.colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: ROUNDED_DESIGN.spacing.spacious,
-    paddingHorizontal: ROUNDED_DESIGN.spacing.comfortable,
-    fontWeight: '300',
+    lineHeight: DESIGN_SYSTEM.typography.fontSize.subtitle * DESIGN_SYSTEM.typography.lineHeight.relaxed,
+    marginBottom: DESIGN_SYSTEM.spacing.lg,
+    fontWeight: DESIGN_SYSTEM.typography.fontWeight.medium,
     opacity: 0.9,
   },
-  suggestionType: {
-    fontSize: ROUNDED_DESIGN.typography.small,
-    color: colors.mutedText,
-    marginBottom: ROUNDED_DESIGN.spacing.gentle,
-    fontWeight: '300',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  timeEstimate: {
-    fontSize: ROUNDED_DESIGN.typography.small,
-    color: colors.text,
-    fontWeight: '400',
-    backgroundColor: colors.buttonBg,
-    paddingHorizontal: ROUNDED_DESIGN.spacing.spacious,
-    paddingVertical: ROUNDED_DESIGN.spacing.comfortable,
-    borderRadius: ROUNDED_DESIGN.radius.full,
-    overflow: 'hidden',
-  },
   actionContainer: {
-    marginTop: ROUNDED_DESIGN.spacing.comfortable,
+    marginTop: DESIGN_SYSTEM.spacing.xl,
     width: '100%',
     alignItems: 'center',
   },
   skipButton: {
     minWidth: 200,
+    alignSelf: 'center',
   },
 });

@@ -174,7 +174,7 @@ class PlacesService {
 
     const requestBody = {
       includedTypes: validTypes,
-      maxResultCount: Math.min(maxResults, 50), // Increased for pagination
+      maxResultCount: Math.max(1, Math.min(maxResults, 20)), // Ensure between 1-20 as required by API
       locationRestriction: {
         circle: {
           center: {
@@ -231,7 +231,7 @@ class PlacesService {
     if (formattedResults.length === 0 && validTypes.length > 0) {
       console.log('🔄 No results found, trying broader search...');
       const broadRequestBody = {
-        maxResultCount: Math.min(maxResults, 25), // Increased for pagination
+        maxResultCount: Math.max(1, Math.min(maxResults, 20)), // Ensure between 1-20 as required by API
         locationRestriction: requestBody.locationRestriction,
         languageCode: 'en'
       };

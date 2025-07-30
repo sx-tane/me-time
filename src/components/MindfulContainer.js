@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { MindfulAnimations, MINDFUL_TIMINGS } from '../utils/mindfulAnimations';
-import { COLORS } from '../constants/colors';
+import DESIGN_SYSTEM from '../constants/designSystem';
 
 const MindfulContainer = ({ 
   children, 
@@ -91,8 +91,8 @@ const MindfulContainer = ({
 
 const styles = StyleSheet.create({
   container: {
-    // Breathing room built in
-    paddingVertical: 8,
+    // Breathing room built in - use consistent spacing
+    paddingVertical: DESIGN_SYSTEM.spacing.sm,
   }
 });
 
